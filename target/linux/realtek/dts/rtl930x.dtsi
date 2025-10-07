@@ -53,7 +53,7 @@
 		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <1>;
-		ranges = <0x0 0x18000000 0x20000>;
+		ranges = <0x0 0x18000000 0x30000>;
 
 		ecc0: ecc@1a600 {
 			compatible = "realtek,rtl9301-ecc";
@@ -162,6 +162,17 @@
 			interrupts = <13 1>;
 		};
 
+		usb0: usb-controller@21000 {
+			compatible = "realtek,rtl9300-ehci";
+			reg = <0x21000 0xefff>, <0x500 0x4>;
+
+			interrupt-controller;
+			#interrupt-cells = <2>;
+			interrupt-parent = <&intc>;
+			interrupts = <28 0>;
+
+			status = "disabled";
+		};
 	};
 
 	switchcore@1b000000 {

@@ -1,0 +1,58 @@
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -669,6 +669,8 @@ config MACH_REALTEK_RTL
+ 	select USE_GENERIC_EARLY_PRINTK_8250
+ 	select ARCH_HAS_RESET_CONTROLLER
+ 	select RESET_CONTROLLER
++	select USB_EHCI_BIG_ENDIAN_DESC
++	select USB_EHCI_BIG_ENDIAN_MMIO
+ 
+ config SGI_IP22
+ 	bool "SGI IP22 (Indy/Indigo2)"
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -1333,6 +1333,10 @@ MODULE_LICENSE ("GPL");
+ #include "ehci-grlib.c"
+ #endif
+ 
++#ifdef CONFIG_MACH_REALTEK_RTL
++#include "ehci-realtek.c"
++#endif
++
+ static struct platform_driver * const platform_drivers[] = {
+ #ifdef CONFIG_USB_EHCI_SH
+ 	&ehci_hcd_sh_driver,
+@@ -1346,6 +1350,9 @@ static struct platform_driver * const platform_drivers[] = {
+ #ifdef CONFIG_SPARC_LEON
+ 	&ehci_grlib_driver,
+ #endif
++#ifdef CONFIG_MACH_REALTEK_RTL
++	&ehci_realtek_driver,
++#endif
+ };
+ 
+ static int __init ehci_hcd_init(void)
+--- a/drivers/usb/host/ehci.h
++++ b/drivers/usb/host/ehci.h
+@@ -759,8 +759,8 @@ static inline unsigned int ehci_readl(const struct ehci_hcd *ehci,
+ {
+ #ifdef CONFIG_USB_EHCI_BIG_ENDIAN_MMIO
+ 	return ehci_big_endian_mmio(ehci) ?
+-		readl_be(regs) :
+-		readl(regs);
++		be32_to_cpu(__raw_readl(regs)) :
++		le32_to_cpu(__raw_readl(regs));
+ #else
+ 	return readl(regs);
+ #endif
+@@ -783,8 +783,8 @@ static inline void ehci_writel(const struct ehci_hcd *ehci,
+ {
+ #ifdef CONFIG_USB_EHCI_BIG_ENDIAN_MMIO
+ 	ehci_big_endian_mmio(ehci) ?
+-		writel_be(val, regs) :
+-		writel(val, regs);
++		__raw_writel(cpu_to_be32(val), regs) :
++		__raw_writel(cpu_to_le32(val), regs);
+ #else
+ 	if (ehci->imx28_write_fix)
+ 		imx28_ehci_writel(val, regs);
