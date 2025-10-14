@@ -9,7 +9,6 @@
  */
 #include "phy_patch.h"
 #include "rtk_phylib.h"
-#include "error.h"
 
 /*
  * Function Declaration
@@ -84,14 +83,18 @@ int phy_patch(struct phy_device *phydev)
             ret = _phy_patch_process(phydev, pPatchDb->table[i].patch.data.conf, pPatchDb->table[i].patch.data.size);
             if (ret < 0)
             {
-                phydev_info(phydev, "id:%u patch-%u failed. ret:0x%X\n", i, patch_type, ret);
+                phydev_err(phydev, "id:%u patch-%u failed. ret:0x%X\n", i, patch_type, ret);
                 return ret;
             }
         }
         else if (RTK_PATCH_TYPE_IS_FLOW(patch_type))
         {
-            RT_ERR_CHK_EHDL(pPatchDb->fPatch_flow(phydev, pPatchDb->table[i].patch.flow_id),
-                            ret, phydev_err(phydev, "id:%u patch-%u failed. ret:0x%X\n", i, patch_type, ret););
+            ret = pPatchDb->fPatch_flow(phydev, pPatchDb->table[i].patch.flow_id);
+            if (ret < 0)
+            {
+                phydev_err(phydev, "id:%u patch-%u failed. ret:0x%X\n", i, patch_type, ret);
+                return ret;
+            };
         }
         else
         {

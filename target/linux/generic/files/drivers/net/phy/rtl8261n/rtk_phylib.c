@@ -5,16 +5,11 @@
  */
 
 #include "rtk_phylib.h"
-#include "error.h"
 
 /* Interrupt */
 int rtk_phylib_826xb_intr_enable(struct phy_device *phydev, u32 en)
 {
-    int ret = 0;
-    /* enable normal interrupt IMR_INT_PHY0 */
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(0, 0), en), ret);
-
-    return ret;
+	return phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(0, 0), en);
 }
 
 int rtk_phylib_826xb_intr_read_clear(struct phy_device *phydev, u32 *status)
@@ -47,8 +42,10 @@ int rtk_phylib_826xb_intr_read_clear(struct phy_device *phydev, u32 *status)
     if(rData & BIT(6))
         rStatus |= RTK_PHY_INTR_MACSEC;
 
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE2, UINT32_BITS_MASK(15, 0), 0xFF), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x2DC, UINT32_BITS_MASK(15, 0), 0xFF), ret);
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE2, UINT32_BITS_MASK(15, 0), 0xFF)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x2DC, UINT32_BITS_MASK(15, 0), 0xFF)) < 0)
+        return ret;
 
     *status = rStatus;
     return ret;
@@ -60,31 +57,44 @@ int rtk_phylib_826xb_intr_init(struct phy_device *phydev)
     u32 status = 0;
 
     /* Disable all IMR*/
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(15, 0), 0), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE3, UINT32_BITS_MASK(15, 0), 0), ret);
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(15, 0), 0)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE3, UINT32_BITS_MASK(15, 0), 0)) < 0)
+        return ret;
 
     /* source */
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE4, UINT32_BITS_MASK(15, 0), 0x1), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE0, UINT32_BITS_MASK(15, 0), 0x2F), ret);
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE4, UINT32_BITS_MASK(15, 0), 0x1)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE0, UINT32_BITS_MASK(15, 0), 0x2F)) < 0)
+        return ret;
 
     /* init common link change */
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA424, UINT32_BITS_MASK(15, 0), 0x10), ret);
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA424, UINT32_BITS_MASK(15, 0), 0x10)) < 0)
+        return ret;
 
     /* init rlfd */
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA442, UINT32_BITS_MASK(15, 15), 0x1 << 15), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA448, UINT32_BITS_MASK(7, 7), 0x1 << 7), ret);
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA442, UINT32_BITS_MASK(15, 15), 0x1 << 15)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA448, UINT32_BITS_MASK(7, 7), 0x1 << 7)) < 0)
+        return ret;
 
     /* init tm */
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x1A0, UINT32_BITS_MASK(11, 11), 0x1 << 11), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x19D, UINT32_BITS_MASK(11, 11), 0x1 << 11), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x1A1, UINT32_BITS_MASK(11, 11), 0x1 << 11), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x19F, UINT32_BITS_MASK(11, 11), 0x1 << 11), ret);
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x1A0, UINT32_BITS_MASK(11, 11), 0x1 << 11)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x19D, UINT32_BITS_MASK(11, 11), 0x1 << 11)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x1A1, UINT32_BITS_MASK(11, 11), 0x1 << 11)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x19F, UINT32_BITS_MASK(11, 11), 0x1 << 11)) < 0)
+        return ret;
 
     /* init WOL */
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA424, UINT32_BITS_MASK(7, 7), 0x1 << 7), ret);
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA424, UINT32_BITS_MASK(7, 7), 0x1 << 7)) < 0)
+        return ret;
 
     /* clear status */
-    RT_ERR_CHK(rtk_phylib_826xb_intr_read_clear(phydev, &status), ret);
+    if ((ret = rtk_phylib_826xb_intr_read_clear(phydev, &status)) < 0)
+        return ret;
 
     return ret;
 }
@@ -92,29 +102,25 @@ int rtk_phylib_826xb_intr_init(struct phy_device *phydev)
 /* Link-down-power-saving/EDPD */
 int rtk_phylib_826xb_link_down_power_saving_set(struct phy_device *phydev, u32 ena)
 {
-    int ret = 0;
     u32 data =  (ena > 0) ? 0x1 : 0x0;
 
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA430, UINT32_BITS_MASK(2, 2), data << 2), ret);
-    return ret;
+	return phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA430, UINT32_BITS_MASK(2, 2), data << 2);
 }
 
 int rtk_phylib_826xb_link_down_power_saving_get(struct phy_device *phydev, u32 *pEna)
 {
-    int ret = 0;
-    u32 data = 0;
-
-    data = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xA430), 2, UINT32_BITS_MASK(2, 2));
-    *pEna = data;
-    return ret;
+	*pEna = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xA430), 2, UINT32_BITS_MASK(2, 2));
+	return 0;
 }
 
 /* Wake on Lan */
 int rtk_phylib_826xb_wol_reset(struct phy_device *phydev)
 {
     int ret = 0;
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 0), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 1 << 15), ret);
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 0)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 1 << 15)) < 0)
+        return ret;
     return ret;
 }
 
@@ -122,13 +128,18 @@ int rtk_phylib_826xb_wol_set(struct phy_device *phydev, u32 wol_opts)
 {
     int ret = 0;
 
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(13, 13), ((wol_opts & RTK_WOL_OPT_LINK) ? 1 : 0) << 13), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(12, 12), ((wol_opts & RTK_WOL_OPT_MAGIC) ? 1 : 0) << 12), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(10, 10), ((wol_opts & RTK_WOL_OPT_UCAST) ? 1 : 0) << 10), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(9, 9), ((wol_opts & RTK_WOL_OPT_MCAST) ? 1 : 0) << 9), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(8, 8), ((wol_opts & RTK_WOL_OPT_BCAST) ? 1 : 0) << 8), ret);
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(13, 13), ((wol_opts & RTK_WOL_OPT_LINK) ? 1 : 0) << 13)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(12, 12), ((wol_opts & RTK_WOL_OPT_MAGIC) ? 1 : 0) << 12)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(10, 10), ((wol_opts & RTK_WOL_OPT_UCAST) ? 1 : 0) << 10)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(9, 9), ((wol_opts & RTK_WOL_OPT_MCAST) ? 1 : 0) << 9)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(8, 8), ((wol_opts & RTK_WOL_OPT_BCAST) ? 1 : 0) << 8)) < 0)
+        return ret;
 
-    return  ret;
+    return ret;
 }
 
 int rtk_phylib_826xb_wol_get(struct phy_device *phydev, u32 *pWol_opts)
@@ -149,16 +160,19 @@ int rtk_phylib_826xb_wol_get(struct phy_device *phydev, u32 *pWol_opts)
     wol_opts |= ((data) ? RTK_WOL_OPT_BCAST : 0);
 
     *pWol_opts = wol_opts;
-    return  ret;
+    return ret;
 }
 
 int rtk_phylib_826xb_wol_unicast_addr_set(struct phy_device *phydev, u8 *mac_addr)
 {
     int ret = 0;
 
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C0, UINT32_BITS_MASK(15, 0), (mac_addr[1] << 8 | mac_addr[0])), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C2, UINT32_BITS_MASK(15, 0), (mac_addr[3] << 8 | mac_addr[2])), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C4, UINT32_BITS_MASK(15, 0), (mac_addr[5] << 8 | mac_addr[4])), ret);
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C0, UINT32_BITS_MASK(15, 0), (mac_addr[1] << 8 | mac_addr[0]))) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C2, UINT32_BITS_MASK(15, 0), (mac_addr[3] << 8 | mac_addr[2]))) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C4, UINT32_BITS_MASK(15, 0), (mac_addr[5] << 8 | mac_addr[4]))) < 0)
+        return ret;
     return ret;
 }
 
@@ -193,7 +207,6 @@ u32 rtk_phylib_826xb_wol_multicast_mac2offset(u8 *mac_addr)
 int rtk_phylib_826xb_wol_multicast_mask_add(struct phy_device *phydev, u32 offset)
 {
     const u32 cfg_reg[4] = {0xD8C6, 0xD8C8, 0xD8CA, 0xD8CC};
-    int ret = 0;
     u32 idx = offset/16;
     u32 multicast_cfg = 0;
 
@@ -201,8 +214,7 @@ int rtk_phylib_826xb_wol_multicast_mask_add(struct phy_device *phydev, u32 offse
 
     multicast_cfg = (multicast_cfg | (0b1 << (offset % 16)));
 
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx], UINT32_BITS_MASK(15, 0), multicast_cfg), ret);
-    return ret;
+	return phy_modify_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx], UINT32_BITS_MASK(15, 0), multicast_cfg);
 }
 
 int rtk_phylib_826xb_wol_multicast_mask_reset(struct phy_device *phydev)
@@ -213,7 +225,8 @@ int rtk_phylib_826xb_wol_multicast_mask_reset(struct phy_device *phydev)
 
     for (idx = 0; idx < 4; idx++)
     {
-        RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx], UINT32_BITS_MASK(15, 0), 0), ret);
+        if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx], UINT32_BITS_MASK(15, 0), 0)) < 0)
+        	return ret;
     }
 
     return ret;

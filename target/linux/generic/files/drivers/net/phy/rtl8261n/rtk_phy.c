@@ -13,7 +13,6 @@
 #include "phy_rtl826xb_patch.h"
 #include "rtk_phylib.h"
 #include "rtk_phy.h"
-#include "error.h"
 
 #define REALTEK_SERDES_GLOBAL_CFG       0x1c
 #define   REALTEK_HSO_INV               BIT(7)
@@ -278,10 +277,7 @@ static int rtkphy_c45_read_status(struct phy_device *phydev)
 
 static int rtl826xb_config_intr(struct phy_device *phydev)
 {
-    int ret = 0;
-
-    RT_ERR_CHK(rtk_phylib_826xb_intr_enable(phydev, phydev->interrupts == PHY_INTERRUPT_ENABLED), ret);
-    return ret;
+	return rtk_phylib_826xb_intr_enable(phydev, phydev->interrupts == PHY_INTERRUPT_ENABLED);
 }
 
 static irqreturn_t rtl826xb_handle_intr(struct phy_device *phydev)
@@ -315,7 +311,8 @@ static int rtl826xb_get_tunable(struct phy_device *phydev, struct ethtool_tunabl
     switch (tuna->id)
     {
         case ETHTOOL_PHY_EDPD:
-            RT_ERR_CHK(rtk_phylib_826xb_link_down_power_saving_get(phydev, &val), ret);
+            if ((ret = rtk_phylib_826xb_link_down_power_saving_get(phydev, &val)) < 0)
+        		return ret;
             *(u16 *)data = (val == 0) ? ETHTOOL_PHY_EDPD_DISABLE : ETHTOOL_PHY_EDPD_DFLT_TX_MSECS;
             return 0;
 
@@ -343,7 +340,8 @@ static int rtl826xb_set_tunable(struct phy_device *phydev, struct ethtool_tunabl
                 default:
                     return -EINVAL;
             }
-            RT_ERR_CHK(rtk_phylib_826xb_link_down_power_saving_set(phydev, val), ret);
+            if ((ret = rtk_phylib_826xb_link_down_power_saving_set(phydev, val)) < 0)
+        		return ret;
             return 0;
 
         default:
@@ -368,12 +366,14 @@ static int rtl826xb_set_wol(struct phy_device *phydev,
     if (wol->wolopts & (WAKE_MAGIC | WAKE_UCAST))
     {
         mac_addr = (u8 *) ndev->dev_addr;
-        RT_ERR_CHK(rtk_phylib_826xb_wol_unicast_addr_set(phydev, mac_addr), ret);
+        if ((ret = rtk_phylib_826xb_wol_unicast_addr_set(phydev, mac_addr)) < 0)
+        	return ret;
     }
 
     if (wol->wolopts & WAKE_MCAST)
     {
-        RT_ERR_CHK(rtk_phylib_826xb_wol_multicast_mask_reset(phydev), ret);
+        if ((ret = rtk_phylib_826xb_wol_multicast_mask_reset(phydev)) < 0)
+        	return ret;
 
         if (!netdev_mc_empty(ndev))
         {
@@ -381,7 +381,8 @@ static int rtl826xb_set_wol(struct phy_device *phydev,
             netdev_for_each_mc_addr(ha, ndev)
             {
                 pr_info("[%s,%d] mac: %pM \n", __FUNCTION__, __LINE__, ha->addr);
-                RT_ERR_CHK(rtk_phylib_826xb_wol_multicast_mask_add(phydev, rtk_phylib_826xb_wol_multicast_mac2offset(ha->addr)), ret);
+                if ((ret = rtk_phylib_826xb_wol_multicast_mask_add(phydev, rtk_phylib_826xb_wol_multicast_mac2offset(ha->addr))) < 0)
+        			return ret;
             }
         }
     }
@@ -397,7 +398,8 @@ static int rtl826xb_set_wol(struct phy_device *phydev,
     if (wol->wolopts & WAKE_MCAST)
         rtk_wol_opts |= RTK_WOL_OPT_MCAST;
 
-    RT_ERR_CHK(rtk_phylib_826xb_wol_set(phydev, rtk_wol_opts), ret);
+    if ((ret = rtk_phylib_826xb_wol_set(phydev, rtk_wol_opts)) < 0)
+        return ret;
 
     return 0;
 }
