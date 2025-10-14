@@ -73,7 +73,7 @@ static int rtl826xb_probe(struct phy_device *phydev)
 
     if (phydev->drv->phy_id == REALTEK_PHY_ID_RTL8261N)
     {
-        data = phy_read_mmd(phydev, 30, 0x103);
+        data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x103);
         if (data < 0)
             return data;
 
@@ -83,7 +83,7 @@ static int rtl826xb_probe(struct phy_device *phydev)
         }
         else
         {
-            data = phy_read_mmd(phydev, 30, 0x104);
+            data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x104);
             if (data < 0)
                 return data;
 
@@ -99,7 +99,7 @@ static int rtl826xb_probe(struct phy_device *phydev)
     }
     else if (phydev->drv->phy_id == REALTEK_PHY_ID_RTL8264B)
     {
-        data = phy_read_mmd(phydev, 30, 0x103);
+        data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x103);
         if (data < 0)
             return data;
 
@@ -153,8 +153,8 @@ static int rtkphy_config_init(struct phy_device *phydev)
                         rtkphy_get_phy_name(phydev), phydev->drv->phy_id, phydev->mdio.addr, priv->pnswap_tx, priv->pnswap_rx);
 
             /* toggle reset */
-            phy_modify_mmd_changed(phydev, 30, 0x145, BIT(0)  , 1);
-            phy_modify_mmd_changed(phydev, 30, 0x145, BIT(0)  , 0);
+            phy_modify_mmd_changed(phydev, MDIO_MMD_VEND1, 0x145, BIT(0)  , 1);
+            phy_modify_mmd_changed(phydev, MDIO_MMD_VEND1, 0x145, BIT(0)  , 0);
             mdelay(30);
 
             ret = phy_patch(phydev);
@@ -241,7 +241,7 @@ static int rtkphy_c45_read_status(struct phy_device *phydev)
         if (ret)
             return ret;
 
-        status =  phy_read_mmd(phydev, 31, 0xA414);
+        status =  phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xA414);
         if (status < 0)
             return status;
         linkmode_mod_bit(ETHTOOL_LINK_MODE_1000baseT_Full_BIT,
@@ -291,7 +291,7 @@ static irqreturn_t rtl826xb_handle_intr(struct phy_device *phydev)
     uint32 status = 0;
 
     if ((ret = rtk_phylib_826xb_intr_read_clear(phydev, &status)) != 0)
-		return IRQ_NONE;
+        return IRQ_NONE;
 
     if (status & RTK_PHY_INTR_LINK_CHANGE)
     {
@@ -305,7 +305,7 @@ static irqreturn_t rtl826xb_handle_intr(struct phy_device *phydev)
         rtk_phylib_826xb_wol_reset(phydev);
     }
 
-	return status ? IRQ_HANDLED : IRQ_NONE;
+    return status ? IRQ_HANDLED : IRQ_NONE;
 }
 
 static int rtl826xb_get_tunable(struct phy_device *phydev, struct ethtool_tunable *tuna, void *data)

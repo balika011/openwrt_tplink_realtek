@@ -14,13 +14,6 @@
 #define PHY_C22_MMD_DEV_REG         13
 #define PHY_C22_MMD_ADD_REG         14
 
-/* MDIO Manageable Device(MDD) address*/
-#define PHY_MMD_PMAPMD              1
-#define PHY_MMD_PCS                 3
-#define PHY_MMD_AN                  7
-#define PHY_MMD_VEND1               30   /* Vendor specific 1 */
-#define PHY_MMD_VEND2               31   /* Vendor specific 2 */
-
 #define BIT_0        0x00000001U
 #define BIT_1        0x00000002U
 #define BIT_2        0x00000004U
