@@ -8,7 +8,7 @@
  * Include Files
  */
 #include "phy_rtl826xb_patch.h"
-#include "phy_patch.h"
+#include "rtk_phylib.h"
 #include "construct/conf_rtl8264b.c"
 #include "construct/conf_rtl8261n_c.c"
 #include "rtk_phy.h"
@@ -17,8 +17,6 @@
  * Symbol Definition
  */
 #define PHY_PATCH_WAIT_TIMEOUT     10000000
-
-#define PHY_PATCH_LOG    LOG_INFO
 
 /*
  * Data Declaration
@@ -516,9 +514,6 @@ static int phy_rtl826xb_patch_op(struct phy_device *phydev, rtk_hwpatch_t *pPatc
         case RTK_PATCH_OP_DELAY_MS:
             mdelay(pPatch_data->data);
             break;
-
-        case RTK_PATCH_OP_SKIP:
-            return 0;
 
         default:
             phydev_err(phydev, "patch_op:%u not implemented yet!\n", pPatch_data->patch_op);

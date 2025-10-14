@@ -8,6 +8,7 @@
  * Include Files
  */
 #include "phy_patch.h"
+#include "rtk_phylib.h"
 #include "error.h"
 
 /*
@@ -64,7 +65,6 @@ int phy_patch(struct phy_device *phydev)
     u32 i = 0;
     u8 patch_type = 0;
     rt_phy_patch_db_t *pPatchDb = NULL;
-    rtk_hwpatch_seq_t *table = NULL;
 
     PHYPATCH_DB_GET(phydev, pPatchDb);
 
@@ -74,16 +74,14 @@ int phy_patch(struct phy_device *phydev)
         return -EINVAL;
     }
 
-    table = pPatchDb->table;
-
     for (i = 0; i < RTK_PATCH_SEQ_MAX; i++)
     {
-        patch_type = table[i].patch_type;
-        phydev_info(phydev, "phy_patch: table[%u] patch_type:%u\n", i, patch_type);
+        patch_type = pPatchDb->table[i].patch_type;
+        phydev_info(phydev, "phy_patch: pPatchDb->table[%u] patch_type:%u\n", i, patch_type);
 
         if (RTK_PATCH_TYPE_IS_DATA(patch_type))
         {
-            ret = _phy_patch_process(phydev, table[i].patch.data.conf, table[i].patch.data.size);
+            ret = _phy_patch_process(phydev, pPatchDb->table[i].patch.data.conf, pPatchDb->table[i].patch.data.size);
             if (ret < 0)
             {
                 phydev_info(phydev, "id:%u patch-%u failed. ret:0x%X\n", i, patch_type, ret);
@@ -92,7 +90,7 @@ int phy_patch(struct phy_device *phydev)
         }
         else if (RTK_PATCH_TYPE_IS_FLOW(patch_type))
         {
-            RT_ERR_CHK_EHDL(pPatchDb->fPatch_flow(phydev, table[i].patch.flow_id),
+            RT_ERR_CHK_EHDL(pPatchDb->fPatch_flow(phydev, pPatchDb->table[i].patch.flow_id),
                             ret, phydev_err(phydev, "id:%u patch-%u failed. ret:0x%X\n", i, patch_type, ret););
         }
         else

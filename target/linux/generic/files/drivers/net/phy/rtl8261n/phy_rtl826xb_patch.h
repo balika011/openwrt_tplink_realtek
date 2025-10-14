@@ -10,7 +10,7 @@
 /*
  * Include Files
  */
-#include "rtk_phylib_def.h"
+#include "phy_patch.h"
 
 extern int phy_rtl826xb_patch_db_init(struct phy_device *phydev, rt_phy_patch_db_t **pPhy_patchDb);
 

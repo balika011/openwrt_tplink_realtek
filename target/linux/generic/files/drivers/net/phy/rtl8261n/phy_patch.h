@@ -10,7 +10,65 @@
 /*
  * Include Files
  */
-#include "rtk_phylib.h"
+#include <linux/types.h>
+#include <linux/phy.h>
+
+typedef enum rtk_phypatch_type_e
+{
+    PHY_PATCH_TYPE_NONE = 0,
+    PHY_PATCH_TYPE_TOP = 1,
+    PHY_PATCH_TYPE_SDS,
+    PHY_PATCH_TYPE_AFE,
+    PHY_PATCH_TYPE_UC,
+    PHY_PATCH_TYPE_UC2,
+    PHY_PATCH_TYPE_NCTL0,
+    PHY_PATCH_TYPE_NCTL1,
+    PHY_PATCH_TYPE_NCTL2,
+    PHY_PATCH_TYPE_ALGXG,
+    PHY_PATCH_TYPE_ALG1G,
+    PHY_PATCH_TYPE_NORMAL,
+    PHY_PATCH_TYPE_DATARAM,
+    PHY_PATCH_TYPE_RTCT,
+    PHY_PATCH_TYPE_END
+} rtk_phypatch_type_t;
+
+#define RTK_PATCH_TYPE_FLOW(_id)               (PHY_PATCH_TYPE_END + _id)
+#define RTK_PATCH_TYPE_FLOWID_MAX              PHY_PATCH_TYPE_END
+#define RTK_PATCH_SEQ_MAX                      ( PHY_PATCH_TYPE_END + RTK_PATCH_TYPE_FLOWID_MAX -1)
+
+typedef struct rtk_hwpatch_s
+{
+    u8 patch_op;
+    u8 portmask;
+    u16 pagemmd;
+    u16 addr;
+    u8 msb;
+    u8 lsb;
+    u16 data;
+} rtk_hwpatch_t;
+
+typedef struct rt_phy_patch_db_s
+{
+    /* patch operation */
+    int (*fPatch_op)(struct phy_device *phydev, rtk_hwpatch_t *pPatch_data);
+    int (*fPatch_flow)(struct phy_device *phydev, u8 patch_flow);
+
+    /* patch data */
+    struct
+    {
+        rtk_phypatch_type_t patch_type;
+        union
+        {
+            struct
+            {
+                rtk_hwpatch_t *conf;
+                u32 size;
+            } data;
+            u8 flow_id;
+        } patch;
+    } table[RTK_PATCH_SEQ_MAX];
+
+} rt_phy_patch_db_t;
 
 /*
  * Symbol Definition
@@ -29,7 +87,6 @@
 
 /* 200~255 control op */
 #define RTK_PATCH_OP_DELAY_MS                200
-#define RTK_PATCH_OP_SKIP                    255
 
 
 /*

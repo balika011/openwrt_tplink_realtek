@@ -4,7 +4,8 @@
  * Copyright (c) 2023 Realtek Semiconductor Corp. All rights reserved.
  */
 
-#include "rtk_phylib_rtl826xb.h"
+#include "rtk_phylib.h"
+#include "error.h"
 
 /* Indirect Register Access APIs */
 int rtk_phylib_826xb_sds_read(struct phy_device *phydev, u32 page, u32 reg, u8 msb, u8 lsb, u32 *pData)
@@ -16,7 +17,7 @@ int rtk_phylib_826xb_sds_read(struct phy_device *phydev, u32 page, u32 reg, u8 m
     u32 mask = 0;
     mask = UINT32_BITS_MASK(msb,lsb);
 
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 323, UINT32_BITS_MASK(15, 0), op));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 323, UINT32_BITS_MASK(15, 0), op), ret);
 
     for (i = 0; i < 10; i++)
     {
@@ -46,12 +47,12 @@ int rtk_phylib_826xb_sds_write(struct phy_device *phydev, u32 page, u32 reg, u8 
     u32 mask = 0;
     mask = UINT32_BITS_MASK(msb,lsb);
 
-    RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_sds_read(phydev, page, reg, 15, 0, &rData));
+    RT_ERR_CHK(rtk_phylib_826xb_sds_read(phydev, page, reg, 15, 0, &rData), ret);
 
     wData = REG32_FIELD_SET(rData, data, lsb, mask);
 
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 321, UINT32_BITS_MASK(15, 0), wData));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 323, UINT32_BITS_MASK(15, 0), op));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 321, UINT32_BITS_MASK(15, 0), wData), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 323, UINT32_BITS_MASK(15, 0), op), ret);
 
     return ret;
 }
@@ -61,7 +62,7 @@ int rtk_phylib_826xb_intr_enable(struct phy_device *phydev, u32 en)
 {
     int ret = 0;
     /* enable normal interrupt IMR_INT_PHY0 */
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(0, 0), en));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(0, 0), en), ret);
 
     return ret;
 }
@@ -96,8 +97,8 @@ int rtk_phylib_826xb_intr_read_clear(struct phy_device *phydev, u32 *status)
     if(rData & BIT(6))
         rStatus |= RTK_PHY_INTR_MACSEC;
 
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE2, UINT32_BITS_MASK(15, 0), 0xFF));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x2DC, UINT32_BITS_MASK(15, 0), 0xFF));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE2, UINT32_BITS_MASK(15, 0), 0xFF), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x2DC, UINT32_BITS_MASK(15, 0), 0xFF), ret);
 
     *status = rStatus;
     return ret;
@@ -109,31 +110,31 @@ int rtk_phylib_826xb_intr_init(struct phy_device *phydev)
     u32 status = 0;
 
     /* Disable all IMR*/
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(15, 0), 0));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE3, UINT32_BITS_MASK(15, 0), 0));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(15, 0), 0), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE3, UINT32_BITS_MASK(15, 0), 0), ret);
 
     /* source */
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE4, UINT32_BITS_MASK(15, 0), 0x1));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE0, UINT32_BITS_MASK(15, 0), 0x2F));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE4, UINT32_BITS_MASK(15, 0), 0x1), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE0, UINT32_BITS_MASK(15, 0), 0x2F), ret);
 
     /* init common link change */
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA424, UINT32_BITS_MASK(15,  0), 0x10));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA424, UINT32_BITS_MASK(15, 0), 0x10), ret);
 
     /* init rlfd */
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA442, UINT32_BITS_MASK(15, 15), 0x1 << 15));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA448, UINT32_BITS_MASK(7, 7), 0x1 << 7));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA442, UINT32_BITS_MASK(15, 15), 0x1 << 15), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA448, UINT32_BITS_MASK(7, 7), 0x1 << 7), ret);
 
     /* init tm */
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x1A0, UINT32_BITS_MASK(11, 11), 0x1 << 11));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x19D, UINT32_BITS_MASK(11, 11), 0x1 << 11));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x1A1, UINT32_BITS_MASK(11, 11), 0x1 << 11));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x19F, UINT32_BITS_MASK(11, 11), 0x1 << 11));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x1A0, UINT32_BITS_MASK(11, 11), 0x1 << 11), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x19D, UINT32_BITS_MASK(11, 11), 0x1 << 11), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x1A1, UINT32_BITS_MASK(11, 11), 0x1 << 11), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x19F, UINT32_BITS_MASK(11, 11), 0x1 << 11), ret);
 
     /* init WOL */
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA424, UINT32_BITS_MASK(7,  7), 0x1 << 7));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA424, UINT32_BITS_MASK(7, 7), 0x1 << 7), ret);
 
     /* clear status */
-    RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_intr_read_clear(phydev, &status));
+    RT_ERR_CHK(rtk_phylib_826xb_intr_read_clear(phydev, &status), ret);
 
     return ret;
 }
@@ -144,7 +145,7 @@ int rtk_phylib_826xb_link_down_power_saving_set(struct phy_device *phydev, u32 e
     int ret = 0;
     u32 data =  (ena > 0) ? 0x1 : 0x0;
 
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA430, UINT32_BITS_MASK(2, 2), data << 2));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA430, UINT32_BITS_MASK(2, 2), data << 2), ret);
     return ret;
 }
 
@@ -162,8 +163,8 @@ int rtk_phylib_826xb_link_down_power_saving_get(struct phy_device *phydev, u32 *
 int rtk_phylib_826xb_wol_reset(struct phy_device *phydev)
 {
     int ret = 0;
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 0));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 1 << 15));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 0), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 1 << 15), ret);
     return ret;
 }
 
@@ -171,11 +172,11 @@ int rtk_phylib_826xb_wol_set(struct phy_device *phydev, u32 wol_opts)
 {
     int ret = 0;
 
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(13, 13), ((wol_opts & RTK_WOL_OPT_LINK) ? 1 : 0) << 13));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(12, 12), ((wol_opts & RTK_WOL_OPT_MAGIC) ? 1 : 0) << 12));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(10, 10), ((wol_opts & RTK_WOL_OPT_UCAST) ? 1 : 0) << 10));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(9, 9), ((wol_opts & RTK_WOL_OPT_MCAST) ? 1 : 0) << 9));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(8, 8), ((wol_opts & RTK_WOL_OPT_BCAST) ? 1 : 0) << 8));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(13, 13), ((wol_opts & RTK_WOL_OPT_LINK) ? 1 : 0) << 13), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(12, 12), ((wol_opts & RTK_WOL_OPT_MAGIC) ? 1 : 0) << 12), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(10, 10), ((wol_opts & RTK_WOL_OPT_UCAST) ? 1 : 0) << 10), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(9, 9), ((wol_opts & RTK_WOL_OPT_MCAST) ? 1 : 0) << 9), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(8, 8), ((wol_opts & RTK_WOL_OPT_BCAST) ? 1 : 0) << 8), ret);
 
     return  ret;
 }
@@ -205,9 +206,9 @@ int rtk_phylib_826xb_wol_unicast_addr_set(struct phy_device *phydev, u8 *mac_add
 {
     int ret = 0;
 
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C0, UINT32_BITS_MASK(15, 0), (mac_addr[1] << 8 | mac_addr[0])));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C2, UINT32_BITS_MASK(15, 0), (mac_addr[3] << 8 | mac_addr[2])));
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C4, UINT32_BITS_MASK(15, 0), (mac_addr[5] << 8 | mac_addr[4])));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C0, UINT32_BITS_MASK(15, 0), (mac_addr[1] << 8 | mac_addr[0])), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C2, UINT32_BITS_MASK(15, 0), (mac_addr[3] << 8 | mac_addr[2])), ret);
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C4, UINT32_BITS_MASK(15, 0), (mac_addr[5] << 8 | mac_addr[4])), ret);
     return ret;
 }
 
@@ -250,7 +251,7 @@ int rtk_phylib_826xb_wol_multicast_mask_add(struct phy_device *phydev, u32 offse
 
     multicast_cfg = (multicast_cfg | (0b1 << (offset % 16)));
 
-    RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx], UINT32_BITS_MASK(15, 0), multicast_cfg));
+    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx], UINT32_BITS_MASK(15, 0), multicast_cfg), ret);
     return ret;
 }
 
@@ -262,7 +263,7 @@ int rtk_phylib_826xb_wol_multicast_mask_reset(struct phy_device *phydev)
 
     for (idx = 0; idx < 4; idx++)
     {
-        RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx], UINT32_BITS_MASK(15, 0), 0));
+        RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx], UINT32_BITS_MASK(15, 0), 0), ret);
     }
 
     return ret;
