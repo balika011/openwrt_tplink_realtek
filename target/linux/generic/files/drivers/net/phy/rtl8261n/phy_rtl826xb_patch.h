@@ -13,6 +13,6 @@
 #include "rtk_osal.h"
 #include "rtk_phylib_def.h"
 
-extern int32 phy_rtl826xb_patch_db_init(struct phy_device *phydev, rt_phy_patch_db_t **pPhy_patchDb);
+extern int phy_rtl826xb_patch_db_init(struct phy_device *phydev, rt_phy_patch_db_t **pPhy_patchDb);
 
 #endif /* __HAL_PHY_PHY_RTL826XB_PATCH_H__ */

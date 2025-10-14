@@ -8,10 +8,6 @@
 #define __COMMON_ERROR_H__
 
 /*
- * Include Files
- */
-#include "type.h"
-/*
  * Data Type Declaration
  */
 typedef enum rt_error_common_e
@@ -87,14 +83,14 @@ typedef enum rt_error_common_e
  */
 #define RT_PARAM_CHK(expr, errCode)\
 do {\
-    if ((int32)(expr)) {\
+    if ((int)(expr)) {\
         return errCode; \
     }\
 } while (0)
 
 #define RT_PARAM_CHK_EHDL(expr, errCode, err_hdl)\
 do {\
-    if ((int32)(expr)) {\
+    if ((int)(expr)) {\
         {err_hdl}\
         return errCode; \
     }\

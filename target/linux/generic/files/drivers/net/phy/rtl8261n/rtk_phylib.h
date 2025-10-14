@@ -9,7 +9,6 @@
 
 #include <linux/types.h>
 
-#include "type.h"
 #include "rtk_phylib_def.h"
 
 typedef enum rtk_phylib_phy_e
@@ -26,9 +25,9 @@ typedef enum rtk_phylib_phy_e
 
 struct rtk_phy_priv {
     rtk_phylib_phy_t phytype;
-    uint8 isBasePort;
     rt_phy_patch_db_t *patch;
 
+    bool isBasePort:1;
     bool pnswap_tx:1;
     bool pnswap_rx:1;
     bool rtk_serdes_patch:1;

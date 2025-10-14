@@ -8,7 +8,6 @@
 #define __RTK_PHYLIB_DEF_H
 
 #include <linux/phy.h>
-#include "type.h"
 
 #define PHY_C22_MMD_PAGE            0x0A41
 #define PHY_C22_MMD_DEV_REG         13
@@ -59,36 +58,36 @@ typedef enum rtk_phypatch_type_e
 
 typedef struct rtk_hwpatch_s
 {
-    uint8    patch_op;
-    uint8    portmask;
-    uint16   pagemmd;
-    uint16   addr;
-    uint8    msb;
-    uint8    lsb;
-    uint16   data;
+    u8    patch_op;
+    u8    portmask;
+    u16   pagemmd;
+    u16   addr;
+    u8    msb;
+    u8    lsb;
+    u16   data;
 } rtk_hwpatch_t;
 
 typedef struct rtk_hwpatch_data_s
 {
     rtk_hwpatch_t *conf;
-    uint32        size;
+    u32 size;
 } rtk_hwpatch_data_t;
 
 typedef struct rtk_hwpatch_seq_s
 {
-    uint8 patch_type;
+    u8 patch_type;
     union
     {
         rtk_hwpatch_data_t data;
-        uint8 flow_id;
+        u8 flow_id;
     } patch;
 } rtk_hwpatch_seq_t;
 
 typedef struct rt_phy_patch_db_s
 {
     /* patch operation */
-    int32   (*fPatch_op)(struct phy_device *phydev, rtk_hwpatch_t *pPatch_data);
-    int32   (*fPatch_flow)(struct phy_device *phydev, uint8 patch_flow);
+    int   (*fPatch_op)(struct phy_device *phydev, rtk_hwpatch_t *pPatch_data);
+    int   (*fPatch_flow)(struct phy_device *phydev, u8 patch_flow);
 
     /* patch data */
     rtk_hwpatch_seq_t table[RTK_PATCH_SEQ_MAX];

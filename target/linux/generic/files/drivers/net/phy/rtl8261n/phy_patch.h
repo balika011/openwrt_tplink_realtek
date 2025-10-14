@@ -67,21 +67,12 @@
         }\
     } while(0)
 
-#define PHYPATCH_COMPARE(_mmdpage, _reg, _msb, _lsb, _exp, _real, _mask) \
-    do {\
-        uint32 _rData = REG32_FIELD_GET(_real, _lsb, _mask);\
-        if (_exp != _rData) {\
-            printk("PATCH CHECK: %u(0x%X).%u(0x%X)[%u:%u] = 0x%X (!= 0x%X)\n", _mmdpage, _mmdpage, _reg, _reg, _msb, _lsb, _rData, _exp);\
-            return RT_ERR_CHECK_FAILED;\
-        }\
-    } while (0)
-
 /*
  * Function Declaration
  */
 
-extern int32 phy_patch_op(rt_phy_patch_db_t *pPhy_patchDb, struct phy_device *phydev,
-                            uint8 patch_op, uint16 portmask, uint16 pagemmd, uint16 addr, uint8 msb, uint8 lsb, uint16 data);
+extern int phy_patch_op(rt_phy_patch_db_t *pPhy_patchDb, struct phy_device *phydev,
+                            u8 patch_op, u16 portmask, u16 pagemmd, u16 addr, u8 msb, u8 lsb, u16 data);
 
 
 /* Function Name:
@@ -102,6 +93,6 @@ extern int32 phy_patch_op(rt_phy_patch_db_t *pPhy_patchDb, struct phy_device *ph
  * Note:
  *      None
  */
-extern int32 phy_patch(struct phy_device *phydev);
+extern int phy_patch(struct phy_device *phydev);
 
 #endif /* __HAL_PHY_PATCH_H__ */

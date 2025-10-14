@@ -12,7 +12,6 @@
 #include "phy_rtl826xb_patch.h"
 #include "rtk_phylib_rtl826xb.h"
 #include "rtk_phylib.h"
-
 #include "rtk_phy.h"
 
 #define REALTEK_SERDES_GLOBAL_CFG       0x1c
@@ -279,7 +278,7 @@ static int rtkphy_c45_read_status(struct phy_device *phydev)
 
 static int rtl826xb_config_intr(struct phy_device *phydev)
 {
-    int32 ret = 0;
+    int ret = 0;
 
     RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_intr_enable(phydev, phydev->interrupts == PHY_INTERRUPT_ENABLED));
     return ret;
@@ -288,7 +287,7 @@ static int rtl826xb_config_intr(struct phy_device *phydev)
 static irqreturn_t rtl826xb_handle_intr(struct phy_device *phydev)
 {
     int ret;
-    uint32 status = 0;
+    u32 status = 0;
 
     if ((ret = rtk_phylib_826xb_intr_read_clear(phydev, &status)) != 0)
         return IRQ_NONE;
@@ -310,8 +309,8 @@ static irqreturn_t rtl826xb_handle_intr(struct phy_device *phydev)
 
 static int rtl826xb_get_tunable(struct phy_device *phydev, struct ethtool_tunable *tuna, void *data)
 {
-    int32 ret = 0;
-    uint32 val = 0;
+    int ret = 0;
+    u32 val = 0;
 
     switch (tuna->id)
     {
@@ -327,8 +326,8 @@ static int rtl826xb_get_tunable(struct phy_device *phydev, struct ethtool_tunabl
 
 static int rtl826xb_set_tunable(struct phy_device *phydev, struct ethtool_tunable *tuna, const void *data)
 {
-    int32 ret = 0;
-    uint32 val = 0;
+    int ret = 0;
+    u32 val = 0;
 
     switch (tuna->id)
     {
@@ -355,9 +354,9 @@ static int rtl826xb_set_tunable(struct phy_device *phydev, struct ethtool_tunabl
 static int rtl826xb_set_wol(struct phy_device *phydev,
               struct ethtool_wolinfo *wol)
 {
-    int32 ret = 0;
-    uint8 *mac_addr = NULL;
-    uint32 rtk_wol_opts = 0;
+    int ret = 0;
+    u8 *mac_addr = NULL;
+    u32 rtk_wol_opts = 0;
 
     struct net_device *ndev = phydev->attached_dev;
     if (!ndev)
@@ -368,7 +367,7 @@ static int rtl826xb_set_wol(struct phy_device *phydev,
 
     if (wol->wolopts & (WAKE_MAGIC | WAKE_UCAST))
     {
-        mac_addr = (uint8 *) ndev->dev_addr;
+        mac_addr = (u8 *) ndev->dev_addr;
         RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_wol_unicast_addr_set(phydev, mac_addr));
     }
 
@@ -407,8 +406,8 @@ static int rtl826xb_set_wol(struct phy_device *phydev,
 static void rtl826xb_get_wol(struct phy_device *phydev,
                struct ethtool_wolinfo *wol)
 {
-    int32 ret = 0;
-    uint32 rtk_wol_opts = 0;
+    int ret = 0;
+    u32 rtk_wol_opts = 0;
 
     wol->supported = WAKE_PHY | WAKE_MAGIC | WAKE_UCAST | WAKE_BCAST | WAKE_MCAST;
     wol->wolopts = 0;

@@ -12,7 +12,7 @@
 /*
  * Function Declaration
  */
-int32 phy_patch_op(rt_phy_patch_db_t *pPhy_patchDb, struct phy_device *phydev, uint8 patch_op, uint16 portmask, uint16 pagemmd, uint16 addr, uint8 msb, uint8 lsb, uint16 data)
+int phy_patch_op(rt_phy_patch_db_t *pPhy_patchDb, struct phy_device *phydev, u8 patch_op, u16 portmask, u16 pagemmd, u16 addr, u8 msb, u8 lsb, u16 data)
 {
     rtk_hwpatch_t op;
 
@@ -27,12 +27,12 @@ int32 phy_patch_op(rt_phy_patch_db_t *pPhy_patchDb, struct phy_device *phydev, u
     return pPhy_patchDb->fPatch_op(phydev, &op);
 }
 
-static int32 _phy_patch_process(struct phy_device *phydev, rtk_hwpatch_t *pPatch, int32 size)
+static int _phy_patch_process(struct phy_device *phydev, rtk_hwpatch_t *pPatch, int size)
 {
-    int32 i = 0;
-    int32 ret = 0;
-    int32 chk_ret = RT_ERR_OK;
-    int32 n;
+    int i = 0;
+    int ret = 0;
+    int chk_ret = RT_ERR_OK;
+    int n;
     rtk_hwpatch_t *patch = pPatch;
     rt_phy_patch_db_t *pPatchDb = NULL;
 
@@ -76,12 +76,12 @@ static int32 _phy_patch_process(struct phy_device *phydev, rtk_hwpatch_t *pPatch
  * Note:
  *      None
  */
-int32 phy_patch(struct phy_device *phydev)
+int phy_patch(struct phy_device *phydev)
 {
-    int32 ret = RT_ERR_OK;
-    int32 chk_ret = RT_ERR_OK;
-    uint32 i = 0;
-    uint8 patch_type = 0;
+    int ret = RT_ERR_OK;
+    int chk_ret = RT_ERR_OK;
+    u32 i = 0;
+    u8 patch_type = 0;
     rt_phy_patch_db_t *pPatchDb = NULL;
     rtk_hwpatch_seq_t *table = NULL;
 

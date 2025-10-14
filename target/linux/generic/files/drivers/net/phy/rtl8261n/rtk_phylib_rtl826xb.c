@@ -7,13 +7,13 @@
 #include "rtk_phylib_rtl826xb.h"
 
 /* Indirect Register Access APIs */
-int rtk_phylib_826xb_sds_read(struct phy_device *phydev, uint32 page, uint32 reg, uint8 msb, uint8 lsb, uint32 *pData)
+int rtk_phylib_826xb_sds_read(struct phy_device *phydev, u32 page, u32 reg, u8 msb, u8 lsb, u32 *pData)
 {
-    int32  ret = 0;
-    uint32 rData = 0;
-    uint32 op = (page & 0x3f) | ((reg & 0x1f) << 6) | (0x8000);
-    uint32 i = 0;
-    uint32 mask = 0;
+    int ret = 0;
+    u32 rData = 0;
+    u32 op = (page & 0x3f) | ((reg & 0x1f) << 6) | (0x8000);
+    u32 i = 0;
+    u32 mask = 0;
     mask = UINT32_BITS_MASK(msb,lsb);
 
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 323, UINT32_BITS_MASK(15, 0), op));
@@ -38,12 +38,12 @@ int rtk_phylib_826xb_sds_read(struct phy_device *phydev, uint32 page, uint32 reg
     return ret;
 }
 
-int rtk_phylib_826xb_sds_write(struct phy_device *phydev, uint32 page, uint32 reg, uint8 msb, uint8 lsb, uint32 data)
+int rtk_phylib_826xb_sds_write(struct phy_device *phydev, u32 page, u32 reg, u8 msb, u8 lsb, u32 data)
 {
-    int32  ret = 0;
-    uint32 wData = 0, rData = 0;
-    uint32 op = (page & 0x3f) | ((reg & 0x1f) << 6) | (0x8800);
-    uint32 mask = 0;
+    int ret = 0;
+    u32 wData = 0, rData = 0;
+    u32 op = (page & 0x3f) | ((reg & 0x1f) << 6) | (0x8800);
+    u32 mask = 0;
     mask = UINT32_BITS_MASK(msb,lsb);
 
     RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_sds_read(phydev, page, reg, 15, 0, &rData));
@@ -57,20 +57,20 @@ int rtk_phylib_826xb_sds_write(struct phy_device *phydev, uint32 page, uint32 re
 }
 
 /* Interrupt */
-int rtk_phylib_826xb_intr_enable(struct phy_device *phydev, uint32 en)
+int rtk_phylib_826xb_intr_enable(struct phy_device *phydev, u32 en)
 {
-    int32  ret = 0;
+    int ret = 0;
     /* enable normal interrupt IMR_INT_PHY0 */
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(0, 0), en));
 
     return ret;
 }
 
-int rtk_phylib_826xb_intr_read_clear(struct phy_device *phydev, uint32 *status)
+int rtk_phylib_826xb_intr_read_clear(struct phy_device *phydev, u32 *status)
 {
-    int32  ret = 0;
-    uint32 rData = 0;
-    uint32 rStatus = 0;
+    int ret = 0;
+    u32 rData = 0;
+    u32 rStatus = 0;
 
     rData = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xA43A), 0, UINT32_BITS_MASK(15, 0));
     if(rData & BIT(1))
@@ -105,8 +105,8 @@ int rtk_phylib_826xb_intr_read_clear(struct phy_device *phydev, uint32 *status)
 
 int rtk_phylib_826xb_intr_init(struct phy_device *phydev)
 {
-    int32  ret = 0;
-    uint32 status = 0;
+    int ret = 0;
+    u32 status = 0;
 
     /* Disable all IMR*/
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(15, 0), 0));
@@ -139,19 +139,19 @@ int rtk_phylib_826xb_intr_init(struct phy_device *phydev)
 }
 
 /* Link-down-power-saving/EDPD */
-int rtk_phylib_826xb_link_down_power_saving_set(struct phy_device *phydev, uint32 ena)
+int rtk_phylib_826xb_link_down_power_saving_set(struct phy_device *phydev, u32 ena)
 {
-    int32  ret = 0;
-    uint32 data =  (ena > 0) ? 0x1 : 0x0;
+    int ret = 0;
+    u32 data =  (ena > 0) ? 0x1 : 0x0;
 
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA430, UINT32_BITS_MASK(2, 2), data << 2));
     return ret;
 }
 
-int rtk_phylib_826xb_link_down_power_saving_get(struct phy_device *phydev, uint32 *pEna)
+int rtk_phylib_826xb_link_down_power_saving_get(struct phy_device *phydev, u32 *pEna)
 {
-    int32  ret = 0;
-    uint32 data = 0;
+    int ret = 0;
+    u32 data = 0;
 
     data = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xA430), 2, UINT32_BITS_MASK(2, 2));
     *pEna = data;
@@ -161,15 +161,15 @@ int rtk_phylib_826xb_link_down_power_saving_get(struct phy_device *phydev, uint3
 /* Wake on Lan */
 int rtk_phylib_826xb_wol_reset(struct phy_device *phydev)
 {
-    int32  ret = 0;
+    int ret = 0;
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 0));
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 1 << 15));
     return ret;
 }
 
-int rtk_phylib_826xb_wol_set(struct phy_device *phydev, uint32 wol_opts)
+int rtk_phylib_826xb_wol_set(struct phy_device *phydev, u32 wol_opts)
 {
-    int32 ret = 0;
+    int ret = 0;
 
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(13, 13), ((wol_opts & RTK_WOL_OPT_LINK) ? 1 : 0) << 13));
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(12, 12), ((wol_opts & RTK_WOL_OPT_MAGIC) ? 1 : 0) << 12));
@@ -180,11 +180,11 @@ int rtk_phylib_826xb_wol_set(struct phy_device *phydev, uint32 wol_opts)
     return  ret;
 }
 
-int rtk_phylib_826xb_wol_get(struct phy_device *phydev, uint32 *pWol_opts)
+int rtk_phylib_826xb_wol_get(struct phy_device *phydev, u32 *pWol_opts)
 {
-    int32 ret = 0;
-    uint32 data = 0;
-    uint32 wol_opts = 0;
+    int ret = 0;
+    u32 data = 0;
+    u32 wol_opts = 0;
 
     data = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0), 13, UINT32_BITS_MASK(13, 13));
     wol_opts |= ((data) ? RTK_WOL_OPT_LINK : 0);
@@ -201,9 +201,9 @@ int rtk_phylib_826xb_wol_get(struct phy_device *phydev, uint32 *pWol_opts)
     return  ret;
 }
 
-int rtk_phylib_826xb_wol_unicast_addr_set(struct phy_device *phydev, uint8 *mac_addr)
+int rtk_phylib_826xb_wol_unicast_addr_set(struct phy_device *phydev, u8 *mac_addr)
 {
-    int32 ret = 0;
+    int ret = 0;
 
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C0, UINT32_BITS_MASK(15, 0), (mac_addr[1] << 8 | mac_addr[0])));
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C2, UINT32_BITS_MASK(15, 0), (mac_addr[3] << 8 | mac_addr[2])));
@@ -211,11 +211,11 @@ int rtk_phylib_826xb_wol_unicast_addr_set(struct phy_device *phydev, uint8 *mac_
     return ret;
 }
 
-uint32 rtk_phylib_826xb_wol_multicast_mac2offset(uint8 *mac_addr)
+u32 rtk_phylib_826xb_wol_multicast_mac2offset(u8 *mac_addr)
 {
-    uint32 crc = 0xFFFFFFFF;
-    uint32 i = 0, j = 0;
-    uint32 b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0;
+    u32 crc = 0xFFFFFFFF;
+    u32 i = 0, j = 0;
+    u32 b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0;
 
     for (i = 0; i < 6; i++) {
         crc ^= mac_addr[i];
@@ -239,13 +239,12 @@ uint32 rtk_phylib_826xb_wol_multicast_mac2offset(uint8 *mac_addr)
     return (b5 | b4 | b3 | b2 | b1 | b0);
 }
 
-int rtk_phylib_826xb_wol_multicast_mask_add(struct phy_device *phydev, uint32 offset)
+int rtk_phylib_826xb_wol_multicast_mask_add(struct phy_device *phydev, u32 offset)
 {
-    const uint32 cfg_reg[4] = {0xD8C6, 0xD8C8, 0xD8CA, 0xD8CC};
-    int32 ret = 0;
-    uint32 idx = offset/16;
-    uint32 multicast_cfg = 0;
-
+    const u32 cfg_reg[4] = {0xD8C6, 0xD8C8, 0xD8CA, 0xD8CC};
+    int ret = 0;
+    u32 idx = offset/16;
+    u32 multicast_cfg = 0;
 
     multicast_cfg = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx]), 0, UINT32_BITS_MASK(15, 0));
 
@@ -257,9 +256,9 @@ int rtk_phylib_826xb_wol_multicast_mask_add(struct phy_device *phydev, uint32 of
 
 int rtk_phylib_826xb_wol_multicast_mask_reset(struct phy_device *phydev)
 {
-    const uint32 cfg_reg[4] = {0xD8C6, 0xD8C8, 0xD8CA, 0xD8CC};
-    int32 ret = 0;
-    uint32 idx = 0;
+    const u32 cfg_reg[4] = {0xD8C6, 0xD8C8, 0xD8CA, 0xD8CC};
+    int ret = 0;
+    u32 idx = 0;
 
     for (idx = 0; idx < 4; idx++)
     {
