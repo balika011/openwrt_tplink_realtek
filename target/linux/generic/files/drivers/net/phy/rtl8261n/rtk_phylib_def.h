@@ -7,6 +7,7 @@
 #ifndef __RTK_PHYLIB_DEF_H
 #define __RTK_PHYLIB_DEF_H
 
+#include <linux/phy.h>
 #include "type.h"
 
 #define PHY_C22_MMD_PAGE            0x0A41
@@ -89,8 +90,6 @@
 #define REG32_FIELD_GET(_data, _fOffset, _fMask)            ((_data & (_fMask)) >> (_fOffset))
 #define UINT32_BITS_MASK(_mBit, _lBit)                      ((0xFFFFFFFF >> (31 - _mBit)) ^ ((1 << _lBit) - 1))
 
-typedef struct phy_device *  rtk_port_t;
-
 /* ss\sdk\include\hal\phy\phydef.h */
 
 /* unified patch format */
@@ -126,11 +125,6 @@ typedef struct rtk_hwpatch_s
     uint8    msb;
     uint8    lsb;
     uint16   data;
-    uint8    compare_op;
-    uint16   sram_p;
-    uint16   sram_rr;
-    uint16   sram_rw;
-    uint16   sram_a;
 } rtk_hwpatch_t;
 
 typedef struct rtk_hwpatch_data_s
@@ -152,12 +146,11 @@ typedef struct rtk_hwpatch_seq_s
 typedef struct rt_phy_patch_db_s
 {
     /* patch operation */
-    int32   (*fPatch_op)(uint32 unit, rtk_port_t port, uint8 portOffset, rtk_hwpatch_t *pPatch_data, uint8 patch_mode);
-    int32   (*fPatch_flow)(uint32 unit, rtk_port_t port, uint8 portOffset, uint8 patch_flow, uint8 patch_mode);
+    int32   (*fPatch_op)(struct phy_device *phydev, rtk_hwpatch_t *pPatch_data);
+    int32   (*fPatch_flow)(struct phy_device *phydev, uint8 patch_flow);
 
     /* patch data */
-    rtk_hwpatch_seq_t seq_table[RTK_PATCH_SEQ_MAX];
-    rtk_hwpatch_seq_t cmp_table[RTK_PATCH_SEQ_MAX];
+    rtk_hwpatch_seq_t table[RTK_PATCH_SEQ_MAX];
 
 } rt_phy_patch_db_t;
 

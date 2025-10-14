@@ -7,7 +7,7 @@
 #include "rtk_phylib_rtl826xb.h"
 
 /* Indirect Register Access APIs */
-int rtk_phylib_826xb_sds_read(rtk_phydev *phydev, uint32 page, uint32 reg, uint8 msb, uint8 lsb, uint32 *pData)
+int rtk_phylib_826xb_sds_read(struct phy_device *phydev, uint32 page, uint32 reg, uint8 msb, uint8 lsb, uint32 *pData)
 {
     int32  ret = 0;
     uint32 rData = 0;
@@ -38,7 +38,7 @@ int rtk_phylib_826xb_sds_read(rtk_phydev *phydev, uint32 page, uint32 reg, uint8
     return ret;
 }
 
-int rtk_phylib_826xb_sds_write(rtk_phydev *phydev, uint32 page, uint32 reg, uint8 msb, uint8 lsb, uint32 data)
+int rtk_phylib_826xb_sds_write(struct phy_device *phydev, uint32 page, uint32 reg, uint8 msb, uint8 lsb, uint32 data)
 {
     int32  ret = 0;
     uint32 wData = 0, rData = 0;

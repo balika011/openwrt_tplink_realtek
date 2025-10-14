@@ -110,7 +110,7 @@ do {\
 #define RT_INIT_REENTRY_CHK(state)\
 do {\
     if (INIT_COMPLETED == (state)) {\
-        osal_printf(" %s had already been initialized!\n", __FUNCTION__);\
+        printk("%s had already been initialized!\n", __FUNCTION__);\
         return RT_ERR_OK;\
     }\
 } while (0)
@@ -153,7 +153,7 @@ do {\
 #define RT_ERR_VOID_CHK(op, ret)\
 do {\
     if ((ret = (op)) != RT_ERR_OK) {\
-        osal_printf("Fail in %s %d, ret %x!\n", __FUNCTION__, __LINE__, ret);\
+        printk("Fail in %s %d, ret %x!\n", __FUNCTION__, __LINE__, ret);\
         return ;}\
 } while(0)
 

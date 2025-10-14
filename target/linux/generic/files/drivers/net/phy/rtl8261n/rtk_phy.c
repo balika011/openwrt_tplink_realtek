@@ -67,7 +67,7 @@ static int rtl826xb_probe(struct phy_device *phydev)
     }
     memset(priv, 0, sizeof(struct rtk_phy_priv));
 
-    if (phy_rtl826xb_patch_db_init(0, phydev, &(priv->patch)) != RT_ERR_OK)
+    if (phy_rtl826xb_patch_db_init(phydev, &(priv->patch)) != RT_ERR_OK)
         return -ENOMEM;
 
     if (phydev->drv->phy_id == REALTEK_PHY_ID_RTL8261N)
@@ -156,7 +156,7 @@ static int rtkphy_config_init(struct phy_device *phydev)
             phy_modify_mmd_changed(phydev, 30, 0x145, BIT(0)  , 0);
             mdelay(30);
 
-            ret = phy_patch(0, phydev, 0, PHY_PATCH_MODE_NORMAL);
+            ret = phy_patch(phydev);
             if (ret)
             {
                 phydev_err(phydev, "%s:%u [RTL8261N/RTL826XB] patch failed!! 0x%X\n", __FUNCTION__, __LINE__, ret);

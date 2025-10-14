@@ -12,16 +12,6 @@
 #include "type.h"
 #include "rtk_phylib_def.h"
 
-#define PR_INFO(_fmt, _args...) pr_info(_fmt, ##_args)
-#define PR_DBG(_fmt, _args...)  pr_debug(_fmt, ##_args)
-#define PR_ERR(_fmt, _args...)  pr_err("ERROR: "_fmt, ##_args)
-
-#define RTK_PHYLIB_ERR_FAILED             (-EPERM)
-#define RTK_PHYLIB_ERR_INPUT              (-EINVAL)
-#define RTK_PHYLIB_ERR_EXCEEDS_CAPACITY   (-ENOSPC)
-#define RTK_PHYLIB_ERR_TIMEOUT            (-ETIME)
-#define RTK_PHYLIB_ERR_ENTRY_NOTFOUND     (-ENODATA)
-
 typedef enum rtk_phylib_phy_e
 {
     RTK_PHYLIB_NONE,
@@ -44,8 +34,6 @@ struct rtk_phy_priv {
     bool rtk_serdes_patch:1;
 };
 
-typedef struct phy_device rtk_phydev;
-
 #define RTK_PHYLIB_ERR_CHK(op)\
 do {\
     if ((ret = (op)) != 0)\
@@ -56,7 +44,7 @@ do {\
 void rtk_phylib_udelay(uint32 usec);
 
 /* Register Access APIs */
-int32 rtk_phylib_mmd_write(rtk_phydev *phydev, uint32 mmd, uint32 reg, uint8 msb, uint8 lsb, uint32 data);
-int32 rtk_phylib_mmd_read(rtk_phydev *phydev, uint32 mmd, uint32 reg, uint8 msb, uint8 lsb, uint32 *pData);
+int32 rtk_phylib_mmd_write(struct phy_device *phydev, uint32 mmd, uint32 reg, uint8 msb, uint8 lsb, uint32 data);
+int32 rtk_phylib_mmd_read(struct phy_device *phydev, uint32 mmd, uint32 reg, uint8 msb, uint8 lsb, uint32 *pData);
 
 #endif /* __RTK_PHYLIB_H */

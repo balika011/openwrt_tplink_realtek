@@ -39,10 +39,10 @@ osal_alloc(uint32 size)
 }
 
 int32
-phy_common_general_reg_mmd_get(uint32 unit, rtk_port_t port, uint32 mmdAddr, uint32 mmdReg, uint32 *pData)
+phy_common_general_reg_mmd_get(struct phy_device *phydev, uint32 mmdAddr, uint32 mmdReg, uint32 *pData)
 {
     int32 rData = 0;
-    rData = phy_read_mmd(port, mmdAddr, mmdReg);
+    rData = phy_read_mmd(phydev, mmdAddr, mmdReg);
     if (rData < 0)
         return RT_ERR_FAILED;
     *pData = (uint32)rData;
@@ -50,8 +50,8 @@ phy_common_general_reg_mmd_get(uint32 unit, rtk_port_t port, uint32 mmdAddr, uin
 }
 
 int32
-phy_common_general_reg_mmd_set(uint32 unit, rtk_port_t port, uint32 mmdAddr, uint32 mmdReg, uint32 data)
+phy_common_general_reg_mmd_set(struct phy_device *phydev, uint32 mmdAddr, uint32 mmdReg, uint32 data)
 {
-    int ret = phy_write_mmd(port, mmdAddr, mmdReg, data);
+    int ret = phy_write_mmd(phydev, mmdAddr, mmdReg, data);
     return (ret < 0) ? RT_ERR_FAILED : RT_ERR_OK;
 }

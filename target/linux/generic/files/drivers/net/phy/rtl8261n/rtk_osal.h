@@ -33,49 +33,14 @@
 #include <linux/slab.h>
 int32 osal_time_usecs_get(osal_usecs_t *pUsec);
 void *osal_alloc(uint32 size);
-#define osal_time_mdelay  mdelay
 
 #include <linux/ctype.h>    /* for Kernel Space */
 #include <linux/kernel.h>
 #include <linux/string.h>
-#define osal_strlen   strlen
-#define osal_strcmp   strcmp
-#define osal_strcpy   strcpy
-#define osal_strncpy  strncpy
-#define osal_strcat   strcat
-#define osal_strchr   strchr
-#define osal_memset   memset
-#define osal_memcpy   memcpy
-#define osal_memcmp   memcmp
-#define osal_strdup   strdup
-#define osal_strncmp  strncmp
-#define osal_strstr   strstr
-#define osal_strtok   strtok
-#define osal_strtok_r   strtok_r
-#define osal_toupper  toupper
-
-#define osal_printf   printk
-
-/* HWP */
-#define HWP_PORT_SMI(unit, port)               0
-#define HWP_PHY_MODEL_BY_PORT(unit, port)      0
-#define HWP_PHY_ADDR(unit, port)               0
-#define HWP_PHY_BASE_MACID(unit, p)            0
-#define HWP_PORT_TRAVS_EXCEPT_CPU(unit, p)     if (bcast_phyad < 0x1F && p != NULL)
-
-
-/* RT_LOG */
-//#define RT_LOG(level, module, fmt, args...)               do { printk("RT_LOG:"fmt, ## args); } while(0)
-#define RT_LOG(level, module, fmt, args...)               do {} while(0)
-#define RT_ERR(error_code, module, fmt, args...)          do {} while(0)
-#define RT_INIT_ERR(error_code, module, fmt, args...)     do {} while(0)
-#define RT_INIT_MSG(fmt, args...)                         do {} while(0)
-
-#define phy_826xb_ctrl_set(unit, p, RTK_PHY_CTRL_MIIM_BCAST_PHYAD, bcast_phyad)  0
 
 /* reg access */
-int32 phy_common_general_reg_mmd_get(uint32 unit, rtk_port_t port, uint32 mmdAddr, uint32 mmdReg, uint32 *pData);
-int32 phy_common_general_reg_mmd_set(uint32 unit, rtk_port_t port, uint32 mmdAddr, uint32 mmdReg, uint32 data);
+int32 phy_common_general_reg_mmd_get(struct phy_device *phydev, uint32 mmdAddr, uint32 mmdReg, uint32 *pData);
+int32 phy_common_general_reg_mmd_set(struct phy_device *phydev, uint32 mmdAddr, uint32 mmdReg, uint32 data);
 
 
 #endif /* __RTK_PHY_OSAL_H */

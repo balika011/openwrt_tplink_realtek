@@ -22,7 +22,7 @@ void rtk_phylib_udelay(uint32 usec)
 
 
 /* Register Access APIs */
-int32 rtk_phylib_mmd_write(rtk_phydev *phydev, uint32 mmd, uint32 reg, uint8 msb, uint8 lsb, uint32 data)
+int32 rtk_phylib_mmd_write(struct phy_device *phydev, uint32 mmd, uint32 reg, uint8 msb, uint8 lsb, uint32 data)
 {
     int32  ret = 0;
     uint32 mask = 0;
@@ -33,7 +33,7 @@ int32 rtk_phylib_mmd_write(rtk_phydev *phydev, uint32 mmd, uint32 reg, uint8 msb
     return ret;
 }
 
-int32 rtk_phylib_mmd_read(rtk_phydev *phydev, uint32 mmd, uint32 reg, uint8 msb, uint8 lsb, uint32 *pData)
+int32 rtk_phylib_mmd_read(struct phy_device *phydev, uint32 mmd, uint32 reg, uint8 msb, uint8 lsb, uint32 *pData)
 {
     int32  ret = 0;
     uint32 rData = 0;
