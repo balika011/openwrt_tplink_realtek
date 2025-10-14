@@ -7,56 +7,6 @@
 #include "rtk_phylib.h"
 #include "error.h"
 
-/* Indirect Register Access APIs */
-int rtk_phylib_826xb_sds_read(struct phy_device *phydev, u32 page, u32 reg, u8 msb, u8 lsb, u32 *pData)
-{
-    int ret = 0;
-    u32 rData = 0;
-    u32 op = (page & 0x3f) | ((reg & 0x1f) << 6) | (0x8000);
-    u32 i = 0;
-    u32 mask = 0;
-    mask = UINT32_BITS_MASK(msb,lsb);
-
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 323, UINT32_BITS_MASK(15, 0), op), ret);
-
-    for (i = 0; i < 10; i++)
-    {
-        rData = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND1, 323), 15, UINT32_BITS_MASK(15, 15));
-        if (rData == 0)
-        {
-            break;
-        }
-        udelay(10);
-    }
-    if (i == 10)
-    {
-        return -1;
-    }
-
-    rData = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND1, 322), 0, UINT32_BITS_MASK(15, 0));
-    *pData = REG32_FIELD_GET(rData, lsb, mask);
-
-    return ret;
-}
-
-int rtk_phylib_826xb_sds_write(struct phy_device *phydev, u32 page, u32 reg, u8 msb, u8 lsb, u32 data)
-{
-    int ret = 0;
-    u32 wData = 0, rData = 0;
-    u32 op = (page & 0x3f) | ((reg & 0x1f) << 6) | (0x8800);
-    u32 mask = 0;
-    mask = UINT32_BITS_MASK(msb,lsb);
-
-    RT_ERR_CHK(rtk_phylib_826xb_sds_read(phydev, page, reg, 15, 0, &rData), ret);
-
-    wData = REG32_FIELD_SET(rData, data, lsb, mask);
-
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 321, UINT32_BITS_MASK(15, 0), wData), ret);
-    RT_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 323, UINT32_BITS_MASK(15, 0), op), ret);
-
-    return ret;
-}
-
 /* Interrupt */
 int rtk_phylib_826xb_intr_enable(struct phy_device *phydev, u32 en)
 {

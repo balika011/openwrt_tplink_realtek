@@ -59,10 +59,6 @@ typedef enum rtk_wol_opt_e
 #define REG32_FIELD_GET(_data, _fOffset, _fMask)            ((_data & (_fMask)) >> (_fOffset))
 #define UINT32_BITS_MASK(_mBit, _lBit)                      ((0xFFFFFFFF >> (31 - _mBit)) ^ ((1 << _lBit) - 1))
 
-/* Register Access*/
-int rtk_phylib_826xb_sds_read(struct phy_device *phydev, u32 page, u32 reg, u8 msb, u8 lsb, u32 *pData);
-int rtk_phylib_826xb_sds_write(struct phy_device *phydev, u32 page, u32 reg, u8 msb, u8 lsb, u32 data);
-
 /* Interrupt */
 int rtk_phylib_826xb_intr_enable(struct phy_device *phydev, u32 en);
 int rtk_phylib_826xb_intr_read_clear(struct phy_device *phydev, u32 *status);
