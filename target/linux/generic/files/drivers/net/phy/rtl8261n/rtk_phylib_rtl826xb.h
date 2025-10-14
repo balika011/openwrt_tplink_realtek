@@ -18,4 +18,8 @@ int rtk_phylib_826xb_intr_enable(struct phy_device *phydev, uint32 en);
 int rtk_phylib_826xb_intr_read_clear(struct phy_device *phydev, uint32 *status);
 int rtk_phylib_826xb_intr_init(struct phy_device *phydev);
 
+/* Link-down-power-saving/EDPD */
+int rtk_phylib_826xb_link_down_power_saving_set(struct phy_device *phydev, uint32 ena);
+int rtk_phylib_826xb_link_down_power_saving_get(struct phy_device *phydev, uint32 *pEna);
+
 #endif /* __RTK_PHYLIB_RTL826XB_H */

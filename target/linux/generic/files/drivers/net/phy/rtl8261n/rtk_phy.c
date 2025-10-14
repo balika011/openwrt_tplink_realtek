@@ -301,6 +301,50 @@ static irqreturn_t rtl826xb_handle_intr(struct phy_device *phydev)
 	return status ? IRQ_HANDLED : IRQ_NONE;
 }
 
+static int rtl826xb_get_tunable(struct phy_device *phydev, struct ethtool_tunable *tuna, void *data)
+{
+    int32 ret = 0;
+    uint32 val = 0;
+
+    switch (tuna->id)
+    {
+        case ETHTOOL_PHY_EDPD:
+            RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_link_down_power_saving_get(phydev, &val));
+            *(u16 *)data = (val == 0) ? ETHTOOL_PHY_EDPD_DISABLE : ETHTOOL_PHY_EDPD_DFLT_TX_MSECS;
+            return 0;
+
+        default:
+            return -EOPNOTSUPP;
+    }
+}
+
+static int rtl826xb_set_tunable(struct phy_device *phydev, struct ethtool_tunable *tuna, const void *data)
+{
+    int32 ret = 0;
+    uint32 val = 0;
+
+    switch (tuna->id)
+    {
+        case ETHTOOL_PHY_EDPD:
+            switch (*(const u16 *)data)
+            {
+                case ETHTOOL_PHY_EDPD_DFLT_TX_MSECS:
+                    val = 1;
+                    break;
+                case ETHTOOL_PHY_EDPD_DISABLE:
+                    val = 0;
+                    break;
+                default:
+                    return -EINVAL;
+            }
+            RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_link_down_power_saving_set(phydev, val));
+            return 0;
+
+        default:
+            return -EOPNOTSUPP;
+    }
+}
+
 static struct phy_driver rtk_phy_drivers[] = {
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8261N),
@@ -315,6 +359,8 @@ static struct phy_driver rtk_phy_drivers[] = {
         .read_status        = rtkphy_c45_read_status,
         .config_intr        = rtl826xb_config_intr,
         .handle_interrupt   = rtl826xb_handle_intr,
+        .get_tunable        = rtl826xb_get_tunable,
+        .set_tunable        = rtl826xb_set_tunable,
     },
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264),
@@ -329,6 +375,8 @@ static struct phy_driver rtk_phy_drivers[] = {
         .read_status        = rtkphy_c45_read_status,
         .config_intr        = rtl826xb_config_intr,
         .handle_interrupt   = rtl826xb_handle_intr,
+        .get_tunable        = rtl826xb_get_tunable,
+        .set_tunable        = rtl826xb_set_tunable,
     },
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264B),
@@ -343,6 +391,8 @@ static struct phy_driver rtk_phy_drivers[] = {
         .read_status        = rtkphy_c45_read_status,
         .config_intr        = rtl826xb_config_intr,
         .handle_interrupt   = rtl826xb_handle_intr,
+        .get_tunable        = rtl826xb_get_tunable,
+        .set_tunable        = rtl826xb_set_tunable,
     },
 };
 

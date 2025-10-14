@@ -132,3 +132,23 @@ int rtk_phylib_826xb_intr_init(struct phy_device *phydev)
 
     return ret;
 }
+
+/* Link-down-power-saving/EDPD */
+int rtk_phylib_826xb_link_down_power_saving_set(struct phy_device *phydev, uint32 ena)
+{
+    int32  ret = 0;
+    uint32 data =  (ena > 0) ? 0x1 : 0x0;
+
+    RTK_PHYLIB_ERR_CHK(rtk_phylib_mmd_write(phydev, 31, 0xA430, 2, 2, data));
+    return ret;
+}
+
+int rtk_phylib_826xb_link_down_power_saving_get(struct phy_device *phydev, uint32 *pEna)
+{
+    int32  ret = 0;
+    uint32 data = 0;
+
+    RTK_PHYLIB_ERR_CHK(rtk_phylib_mmd_read(phydev, 31, 0xA430, 2, 2, &data));
+    *pEna = data;
+    return ret;
+}
