@@ -7,7 +7,8 @@
 /*
  * Include Files
  */
-#include "rtk_osal.h"
+#include "phy_patch.h"
+#include "error.h"
 
 /*
  * Function Declaration

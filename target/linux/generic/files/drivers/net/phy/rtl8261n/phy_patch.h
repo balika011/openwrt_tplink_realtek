@@ -10,7 +10,7 @@
 /*
  * Include Files
  */
-#include "rtk_phylib_def.h"
+#include "rtk_phylib.h"
 
 /*
  * Symbol Definition

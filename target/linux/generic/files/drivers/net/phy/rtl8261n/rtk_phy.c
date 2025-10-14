@@ -9,6 +9,7 @@
 #include <linux/property.h>
 #include <linux/netdevice.h>
 
+#include "phy_patch.h"
 #include "phy_rtl826xb_patch.h"
 #include "rtk_phylib_rtl826xb.h"
 #include "rtk_phylib.h"

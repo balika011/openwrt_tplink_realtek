@@ -8,9 +8,11 @@
  * Include Files
  */
 #include "phy_rtl826xb_patch.h"
+#include "phy_patch.h"
 #include "construct/conf_rtl8264b.c"
 #include "construct/conf_rtl8261n_c.c"
 #include "rtk_phy.h"
+#include "error.h"
 /*
  * Symbol Definition
  */
@@ -52,21 +54,20 @@ _phy_rtl826xb_patch_wait(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32
 {
     u32 rData = 0;
     u32 cnt = 0;
-    WAIT_COMPLETE_VAR()
+    struct timespec64 start, now;
 
-    WAIT_COMPLETE(PHY_PATCH_WAIT_TIMEOUT)
+    for (ktime_get_real_ts64(&start); (((now.tv_sec - start.tv_sec) * USEC_PER_SEC) + ((now.tv_nsec - start.tv_nsec) / NSEC_PER_USEC)) <= PHY_PATCH_WAIT_TIMEOUT; ktime_get_real_ts64(&now), cnt++)
     {
         if ((rData = phy_read_mmd(phydev, mmdAddr, mmdReg)) < 0)
             return rData;
 
-        ++cnt;
         if ((rData & mask) == data)
             break;
 
         mdelay(1);
     }
 
-    if (WAIT_COMPLETE_IS_TIMEOUT())
+    if ((((now.tv_sec - start.tv_sec) * USEC_PER_SEC) + ((now.tv_nsec - start.tv_nsec) / NSEC_PER_USEC)) > PHY_PATCH_WAIT_TIMEOUT)
     {
         phydev_err(phydev, "826XB patch wait[%u,0x%X,0x%X,0x%X]:0x%X cnt:%u\n", mmdAddr, mmdReg, data, mask, rData, cnt);
         return -ETIME;
@@ -80,10 +81,9 @@ _phy_rtl826xb_patch_wait_not_equal(struct phy_device *phydev, u32 mmdAddr, u32 m
 {
     u32 rData = 0;
     u32 cnt = 0;
-    WAIT_COMPLETE_VAR()
+    struct timespec64 start, now;
 
-
-    WAIT_COMPLETE(PHY_PATCH_WAIT_TIMEOUT)
+    for (ktime_get_real_ts64(&start); (((now.tv_sec - start.tv_sec) * USEC_PER_SEC) + ((now.tv_nsec - start.tv_nsec) / NSEC_PER_USEC)) <= PHY_PATCH_WAIT_TIMEOUT; ktime_get_real_ts64(&now), cnt++)
     {
         if ((rData = phy_read_mmd(phydev, mmdAddr, mmdReg)) < 0)
             return rData;
@@ -94,7 +94,8 @@ _phy_rtl826xb_patch_wait_not_equal(struct phy_device *phydev, u32 mmdAddr, u32 m
 
         mdelay(1);
     }
-    if (WAIT_COMPLETE_IS_TIMEOUT())
+
+    if ((((now.tv_sec - start.tv_sec) * USEC_PER_SEC) + ((now.tv_nsec - start.tv_nsec) / NSEC_PER_USEC)) > PHY_PATCH_WAIT_TIMEOUT)
     {
         phydev_err(phydev, "826xb patch wait[%u,0x%X,0x%X,0x%X]:0x%X cnt:%u\n", mmdAddr, mmdReg, data, mask, rData, cnt);
         return -ETIME;
