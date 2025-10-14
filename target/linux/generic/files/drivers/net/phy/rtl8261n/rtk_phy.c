@@ -62,12 +62,11 @@ static int rtl826xb_probe(struct phy_device *phydev)
 
     priv = devm_kzalloc(&phydev->mdio.dev, sizeof(struct rtk_phy_priv), GFP_KERNEL);
     if (!priv)
-    {
         return -ENOMEM;
-    }
+
     memset(priv, 0, sizeof(struct rtk_phy_priv));
 
-    if (phy_rtl826xb_patch_db_init(phydev, &(priv->patch)) != RT_ERR_OK)
+    if (phy_rtl826xb_patch_db_init(phydev, &(priv->patch)) < 0)
         return -ENOMEM;
 
     if (phydev->drv->phy_id == REALTEK_PHY_ID_RTL8261N)
@@ -289,7 +288,7 @@ static irqreturn_t rtl826xb_handle_intr(struct phy_device *phydev)
     int ret;
     u32 status = 0;
 
-    if ((ret = rtk_phylib_826xb_intr_read_clear(phydev, &status)) != 0)
+    if ((ret = rtk_phylib_826xb_intr_read_clear(phydev, &status)) < 0)
         return IRQ_NONE;
 
     if (status & RTK_PHY_INTR_LINK_CHANGE)
@@ -413,7 +412,7 @@ static void rtl826xb_get_wol(struct phy_device *phydev,
     wol->wolopts = 0;
 
     ret = rtk_phylib_826xb_wol_get(phydev, &rtk_wol_opts);
-    if (ret != 0)
+    if (ret < 0)
         return;
 
     if (rtk_wol_opts & RTK_WOL_OPT_LINK)

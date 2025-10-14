@@ -74,25 +74,6 @@
 extern int phy_patch_op(rt_phy_patch_db_t *pPhy_patchDb, struct phy_device *phydev,
                             u8 patch_op, u16 portmask, u16 pagemmd, u16 addr, u8 msb, u8 lsb, u16 data);
 
-
-/* Function Name:
- *      phy_patch
- * Description:
- *      apply initial patch data to PHY
- * Input:
- *      unit       - unit id
- *      port       - port id
- *      portOffset - the index offset of port based the base port in the PHY chip
- * Output:
- *      None
- * Return:
- *      RT_ERR_OK
- *      RT_ERR_FAILED
- *      RT_ERR_CHECK_FAILED
- *      RT_ERR_NOT_SUPPORTED
- * Note:
- *      None
- */
 extern int phy_patch(struct phy_device *phydev);
 
 #endif /* __HAL_PHY_PATCH_H__ */

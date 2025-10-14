@@ -31,7 +31,6 @@ static int _phy_patch_process(struct phy_device *phydev, rtk_hwpatch_t *pPatch, 
 {
     int i = 0;
     int ret = 0;
-    int chk_ret = RT_ERR_OK;
     int n;
     rtk_hwpatch_t *patch = pPatch;
     rt_phy_patch_db_t *pPatchDb = NULL;
@@ -40,14 +39,14 @@ static int _phy_patch_process(struct phy_device *phydev, rtk_hwpatch_t *pPatch, 
 
     if (size <= 0)
     {
-        return RT_ERR_OK;
+        return 0;
     }
     n = size / sizeof(rtk_hwpatch_t);
 
     for (i = 0; i < n; i++)
     {
         ret = pPatchDb->fPatch_op(phydev, &patch[i]);
-        if ((ret != RT_ERR_ABORT) && (ret != RT_ERR_OK))
+        if (ret < 0)
         {
             phydev_err(phydev, "%s failed! %u[%u][0x%X][0x%X][0x%X] ret=0x%X\n", __FUNCTION__,
                         i + 1, patch[i].patch_op, patch[i].pagemmd, patch[i].addr, patch[i].data, ret);
@@ -55,31 +54,12 @@ static int _phy_patch_process(struct phy_device *phydev, rtk_hwpatch_t *pPatch, 
         }
 
     }
-    return (chk_ret == RT_ERR_CHECK_FAILED) ? chk_ret : RT_ERR_OK;
+    return 0;
 }
 
-/* Function Name:
- *      phy_patch
- * Description:
- *      apply initial patch data to PHY
- * Input:
- *      unit       - unit id
- *      port       - port id
- *      portOffset - the index offset of port based the base port in the PHY chip
- * Output:
- *      None
- * Return:
- *      RT_ERR_OK
- *      RT_ERR_FAILED
- *      RT_ERR_CHECK_FAILED
- *      RT_ERR_NOT_SUPPORTED
- * Note:
- *      None
- */
 int phy_patch(struct phy_device *phydev)
 {
-    int ret = RT_ERR_OK;
-    int chk_ret = RT_ERR_OK;
+    int ret = 0;
     u32 i = 0;
     u8 patch_type = 0;
     rt_phy_patch_db_t *pPatchDb = NULL;
@@ -90,7 +70,7 @@ int phy_patch(struct phy_device *phydev)
     if ((pPatchDb == NULL) || (pPatchDb->fPatch_op == NULL) || (pPatchDb->fPatch_flow == NULL))
     {
         phydev_err(phydev, "phy_patch, db is NULL\n");
-        return RT_ERR_DRIVER_NOT_SUPPORTED;
+        return -EINVAL;
     }
 
     table = pPatchDb->table;
@@ -103,10 +83,7 @@ int phy_patch(struct phy_device *phydev)
         if (RTK_PATCH_TYPE_IS_DATA(patch_type))
         {
             ret = _phy_patch_process(phydev, table[i].patch.data.conf, table[i].patch.data.size);
-
-            if (ret == RT_ERR_CHECK_FAILED)
-                chk_ret = ret;
-            else if (ret  != RT_ERR_OK)
+            if (ret < 0)
             {
                 phydev_info(phydev, "id:%u patch-%u failed. ret:0x%X\n", i, patch_type, ret);
                 return ret;
@@ -123,5 +100,5 @@ int phy_patch(struct phy_device *phydev)
         }
     }
 
-    return (chk_ret == RT_ERR_CHECK_FAILED) ? chk_ret : RT_ERR_OK;
+    return 0;
 }

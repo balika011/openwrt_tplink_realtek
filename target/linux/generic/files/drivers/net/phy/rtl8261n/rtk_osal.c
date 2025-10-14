@@ -22,19 +22,17 @@ osal_time_usecs_get(u32 *pUsec)
 {
     struct timespec64 ts;
 
-    RT_PARAM_CHK((NULL == pUsec), RT_ERR_NULL_POINTER);
+    RT_PARAM_CHK((NULL == pUsec), -EINVAL);
 
     ktime_get_ts64(&ts);
-	*pUsec = (u32)((ts.tv_sec * USEC_PER_SEC) + (ts.tv_nsec / NSEC_PER_USEC));
-	return RT_ERR_OK;
+    *pUsec = (u32)((ts.tv_sec * USEC_PER_SEC) + (ts.tv_nsec / NSEC_PER_USEC));
+    return 0;
 }
 
 void *
 osal_alloc(u32 size)
 {
-    void *p;
-    p = kmalloc((size_t)size, GFP_ATOMIC);
-    return p;
+    return kmalloc((size_t)size, GFP_ATOMIC);
 }
 
 int
@@ -43,14 +41,13 @@ phy_common_general_reg_mmd_get(struct phy_device *phydev, u32 mmdAddr, u32 mmdRe
     int rData = 0;
     rData = phy_read_mmd(phydev, mmdAddr, mmdReg);
     if (rData < 0)
-        return RT_ERR_FAILED;
+        return rData;
     *pData = (u32)rData;
-    return RT_ERR_OK;
+    return 0;
 }
 
 int
 phy_common_general_reg_mmd_set(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 data)
 {
-    int ret = phy_write_mmd(phydev, mmdAddr, mmdReg, data);
-    return (ret < 0) ? RT_ERR_FAILED : RT_ERR_OK;
+    return phy_write_mmd(phydev, mmdAddr, mmdReg, data);
 }

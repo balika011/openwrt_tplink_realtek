@@ -35,7 +35,7 @@ struct rtk_phy_priv {
 
 #define RTK_PHYLIB_ERR_CHK(op)\
 do {\
-    if ((ret = (op)) != 0)\
+    if ((ret = (op)) < 0)\
         return ret;\
 } while(0)
 
