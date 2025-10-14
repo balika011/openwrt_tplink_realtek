@@ -40,11 +40,4 @@ do {\
         return ret;\
 } while(0)
 
-/* OSAL */
-void rtk_phylib_udelay(uint32 usec);
-
-/* Register Access APIs */
-int32 rtk_phylib_mmd_write(struct phy_device *phydev, uint32 mmd, uint32 reg, uint8 msb, uint8 lsb, uint32 data);
-int32 rtk_phylib_mmd_read(struct phy_device *phydev, uint32 mmd, uint32 reg, uint8 msb, uint8 lsb, uint32 *pData);
-
 #endif /* __RTK_PHYLIB_H */
