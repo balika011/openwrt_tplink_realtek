@@ -31,7 +31,6 @@
 /* OSAL */
 #include <linux/slab.h>
 int osal_time_usecs_get(u32 *pUsec);
-void *osal_alloc(u32 size);
 
 #include <linux/ctype.h>    /* for Kernel Space */
 #include <linux/kernel.h>

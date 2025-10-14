@@ -598,7 +598,7 @@ int phy_rtl826xb_patch_db_init(struct phy_device *phydev, rt_phy_patch_db_t **pP
     int ret = 0;
     rt_phy_patch_db_t *patch_db = NULL;
 
-    patch_db = osal_alloc(sizeof(rt_phy_patch_db_t));
+    patch_db = kmalloc(sizeof(rt_phy_patch_db_t), GFP_ATOMIC);
     RT_PARAM_CHK(NULL == patch_db, -ENOMEM);
     memset(patch_db, 0x0, sizeof(rt_phy_patch_db_t));
 

@@ -28,9 +28,3 @@ osal_time_usecs_get(u32 *pUsec)
     *pUsec = (u32)((ts.tv_sec * USEC_PER_SEC) + (ts.tv_nsec / NSEC_PER_USEC));
     return 0;
 }
-
-void *
-osal_alloc(u32 size)
-{
-    return kmalloc((size_t)size, GFP_ATOMIC);
-}
