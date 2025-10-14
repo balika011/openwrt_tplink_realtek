@@ -73,27 +73,27 @@ int rtk_phylib_826xb_intr_read_clear(struct phy_device *phydev, uint32 *status)
     uint32 rStatus = 0;
 
     rData = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xA43A), 0, UINT32_BITS_MASK(15, 0));
-    if(rData & BIT_1)
+    if(rData & BIT(1))
         rStatus |= RTK_PHY_INTR_RLFD;
-    if(rData & BIT_2)
+    if(rData & BIT(2))
         rStatus |= RTK_PHY_INTR_NEXT_PAGE_RECV;
-    if(rData & BIT_3)
+    if(rData & BIT(3))
         rStatus |= RTK_PHY_INTR_AN_COMPLETE;
-    if(rData & BIT_4)
+    if(rData & BIT(4))
         rStatus |= RTK_PHY_INTR_LINK_CHANGE;
-    if(rData & BIT_7)
+    if(rData & BIT(7))
         rStatus |= RTK_PHY_INTR_WOL;
-    if(rData & BIT_9)
+    if(rData & BIT(9))
         rStatus |= RTK_PHY_INTR_ALDPS_STATE_CHANGE;
-    if(rData & BIT_11)
+    if(rData & BIT(11))
         rStatus |= RTK_PHY_INTR_FATAL_ERROR;
 
     rData = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND1, 0xE2), 0, UINT32_BITS_MASK(15, 0));
-    if(rData & BIT_3)
+    if(rData & BIT(3))
         rStatus |= RTK_PHY_INTR_TM_LOW;
-    if(rData & BIT_4)
+    if(rData & BIT(4))
         rStatus |= RTK_PHY_INTR_TM_HIGH;
-    if(rData & BIT_6)
+    if(rData & BIT(6))
         rStatus |= RTK_PHY_INTR_MACSEC;
 
     RTK_PHYLIB_ERR_CHK(phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE2, UINT32_BITS_MASK(15, 0), 0xFF));

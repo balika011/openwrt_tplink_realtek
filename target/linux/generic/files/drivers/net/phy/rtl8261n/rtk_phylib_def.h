@@ -14,71 +14,6 @@
 #define PHY_C22_MMD_DEV_REG         13
 #define PHY_C22_MMD_ADD_REG         14
 
-#define BIT_0        0x00000001U
-#define BIT_1        0x00000002U
-#define BIT_2        0x00000004U
-#define BIT_3        0x00000008U
-#define BIT_4        0x00000010U
-#define BIT_5        0x00000020U
-#define BIT_6        0x00000040U
-#define BIT_7        0x00000080U
-#define BIT_8        0x00000100U
-#define BIT_9        0x00000200U
-#define BIT_10       0x00000400U
-#define BIT_11       0x00000800U
-#define BIT_12       0x00001000U
-#define BIT_13       0x00002000U
-#define BIT_14       0x00004000U
-#define BIT_15       0x00008000U
-#define BIT_16       0x00010000U
-#define BIT_17       0x00020000U
-#define BIT_18       0x00040000U
-#define BIT_19       0x00080000U
-#define BIT_20       0x00100000U
-#define BIT_21       0x00200000U
-#define BIT_22       0x00400000U
-#define BIT_23       0x00800000U
-#define BIT_24       0x01000000U
-#define BIT_25       0x02000000U
-#define BIT_26       0x04000000U
-#define BIT_27       0x08000000U
-#define BIT_28       0x10000000U
-#define BIT_29       0x20000000U
-#define BIT_30       0x40000000U
-#define BIT_31       0x80000000U
-
-#define MASK_1_BITS     (BIT_1 - 1)
-#define MASK_2_BITS     (BIT_2 - 1)
-#define MASK_3_BITS     (BIT_3 - 1)
-#define MASK_4_BITS     (BIT_4 - 1)
-#define MASK_5_BITS     (BIT_5 - 1)
-#define MASK_6_BITS     (BIT_6 - 1)
-#define MASK_7_BITS     (BIT_7 - 1)
-#define MASK_8_BITS     (BIT_8 - 1)
-#define MASK_9_BITS     (BIT_9 - 1)
-#define MASK_10_BITS    (BIT_10 - 1)
-#define MASK_11_BITS    (BIT_11 - 1)
-#define MASK_12_BITS    (BIT_12 - 1)
-#define MASK_13_BITS    (BIT_13 - 1)
-#define MASK_14_BITS    (BIT_14 - 1)
-#define MASK_15_BITS    (BIT_15 - 1)
-#define MASK_16_BITS    (BIT_16 - 1)
-#define MASK_17_BITS    (BIT_17 - 1)
-#define MASK_18_BITS    (BIT_18 - 1)
-#define MASK_19_BITS    (BIT_19 - 1)
-#define MASK_20_BITS    (BIT_20 - 1)
-#define MASK_21_BITS    (BIT_21 - 1)
-#define MASK_22_BITS    (BIT_22 - 1)
-#define MASK_23_BITS    (BIT_23 - 1)
-#define MASK_24_BITS    (BIT_24 - 1)
-#define MASK_25_BITS    (BIT_25 - 1)
-#define MASK_26_BITS    (BIT_26 - 1)
-#define MASK_27_BITS    (BIT_27 - 1)
-#define MASK_28_BITS    (BIT_28 - 1)
-#define MASK_29_BITS    (BIT_29 - 1)
-#define MASK_30_BITS    (BIT_30 - 1)
-#define MASK_31_BITS    (BIT_31 - 1)
-
 #define REG32_FIELD_SET(_data, _val, _fOffset, _fMask)      ((_data & ~(_fMask)) | ((_val << (_fOffset)) & (_fMask)))
 #define REG32_FIELD_GET(_data, _fOffset, _fMask)            ((_data & (_fMask)) >> (_fOffset))
 #define UINT32_BITS_MASK(_mBit, _lBit)                      ((0xFFFFFFFF >> (31 - _mBit)) ^ ((1 << _lBit) - 1))
@@ -110,17 +45,17 @@ typedef enum rtk_phypatch_type_e
 #define RTK_PATCH_SEQ_MAX     ( PHY_PATCH_TYPE_END + RTK_PATCH_TYPE_FLOWID_MAX -1)
 
 /* Interrupt */
-#define RTK_PHY_INTR_NEXT_PAGE_RECV       (BIT_0)
-#define RTK_PHY_INTR_AN_COMPLETE          (BIT_1)
-#define RTK_PHY_INTR_LINK_CHANGE          (BIT_2)
-#define RTK_PHY_INTR_ALDPS_STATE_CHANGE   (BIT_3)
-#define RTK_PHY_INTR_RLFD                 (BIT_4)
-#define RTK_PHY_INTR_TM_LOW               (BIT_5)
-#define RTK_PHY_INTR_TM_HIGH              (BIT_6)
-#define RTK_PHY_INTR_FATAL_ERROR          (BIT_7)
-#define RTK_PHY_INTR_MACSEC               (BIT_8)
-#define RTK_PHY_INTR_PTP1588              (BIT_9)
-#define RTK_PHY_INTR_WOL                  (BIT_10)
+#define RTK_PHY_INTR_NEXT_PAGE_RECV       BIT(0)
+#define RTK_PHY_INTR_AN_COMPLETE          BIT(1)
+#define RTK_PHY_INTR_LINK_CHANGE          BIT(2)
+#define RTK_PHY_INTR_ALDPS_STATE_CHANGE   BIT(3)
+#define RTK_PHY_INTR_RLFD                 BIT(4)
+#define RTK_PHY_INTR_TM_LOW               BIT(5)
+#define RTK_PHY_INTR_TM_HIGH              BIT(6)
+#define RTK_PHY_INTR_FATAL_ERROR          BIT(7)
+#define RTK_PHY_INTR_MACSEC               BIT(8)
+#define RTK_PHY_INTR_PTP1588              BIT(9)
+#define RTK_PHY_INTR_WOL                  BIT(10)
 
 typedef struct rtk_hwpatch_s
 {

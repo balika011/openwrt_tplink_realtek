@@ -140,7 +140,7 @@ _phy_rtl826xb_patch_sds_get(struct phy_device *phydev, uint32 sdsPage, uint32 sd
     if ((ret = _phy_rtl826xb_patch_top_get(phydev, 40, 18, &rData)) != RT_ERR_OK)
         return ret;
     *pData = rData;
-    return _phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, 0x143, 0, BIT_15);
+    return _phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, 0x143, 0, BIT(15));
 }
 
 static int32
@@ -153,7 +153,7 @@ _phy_rtl826xb_patch_sds_set(struct phy_device *phydev, uint32 sdsPage, uint32 sd
         return ret;
     if ((ret = _phy_rtl826xb_patch_top_set(phydev, 40, 19, sdsAddr)) != RT_ERR_OK)
         return ret;
-    return _phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, 0x143, 0, BIT_15);
+    return _phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, 0x143, 0, BIT(15));
 }
 
 static int32 _phy_rtl826xb_flow_r1(struct phy_device *phydev)
@@ -169,7 +169,7 @@ static int32 _phy_rtl826xb_flow_r1(struct phy_device *phydev)
     RT_ERR_CHK(phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xb82, 16, 4, 4, 0x1), ret);
 
     //set patch_rdy [PHYReg_bit r $PHYID 0xb80 16 6 6] ; Wait for patch ready = 1
-    RT_ERR_CHK(_phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT_6, BIT_6), ret);
+    RT_ERR_CHK(_phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT(6), BIT(6)), ret);
 
     //PHYReg w $PHYID 0xa43 27 $0x8023
     RT_ERR_CHK(phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa43, 27, 15, 0, 0x8023), ret);
@@ -196,7 +196,7 @@ static int32 _phy_rtl826xb_flow_r12(struct phy_device *phydev)
     RT_ERR_CHK(phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xb82, 16, 4, 4, 0x1), ret);
 
     //set patch_rdy [PHYReg_bit r $PHYID 0xb80 16 6 6] ; Wait for patch ready = 1
-    RT_ERR_CHK(_phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT_6, BIT_6), ret);
+    RT_ERR_CHK(_phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT(6), BIT(6)), ret);
 
     //PHYReg w $PHYID 0xa43 27 $0x8023
     RT_ERR_CHK(phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa43, 27, 15, 0, 0x8023), ret);
@@ -232,7 +232,7 @@ static int32 _phy_rtl826xb_flow_r2(struct phy_device *phydev)
     //PHYReg_bit w $PHYID 0xb82 16 4 4 0x0
     RT_ERR_CHK(phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xb82, 16, 4, 4, 0x0), ret);
     //set patch_rdy [PHYReg_bit r $PHYID 0xb80 16 6 6] ; Wait for patch ready != 1
-    RT_ERR_CHK(_phy_rtl826xb_patch_wait_not_equal(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT_6, BIT_6), ret);
+    RT_ERR_CHK(_phy_rtl826xb_patch_wait_not_equal(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT(6), BIT(6)), ret);
 
     return RT_ERR_OK;
 }
