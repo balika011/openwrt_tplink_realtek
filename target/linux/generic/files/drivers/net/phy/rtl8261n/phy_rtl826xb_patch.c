@@ -364,116 +364,6 @@ static int _phy_rtl826xb_flow_pi(struct phy_device *phydev)
     return 0;
 }
 
-static int _phy_rtl826xb_flow_n01(struct phy_device *phydev)
-{
-    int ret = 0;
-    rt_phy_patch_db_t *pPatchDb = NULL;
-
-    PHYPATCH_DB_GET(phydev, pPatchDb);
-
-    //PHYReg_bit w $PHYID 0xa01 21 15 0 0x1
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 21, 15, 0, 0x1)) < 0)
-        return ret;
-    //PHYReg_bit w $PHYID 0xa01 19 15 0 0x0000
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 19, 15, 0, 0x0000)) < 0)
-        return ret;
-
-    return 0;
-}
-
-static int _phy_rtl826xb_flow_n02(struct phy_device *phydev)
-{
-    int ret = 0;
-    rt_phy_patch_db_t *pPatchDb = NULL;
-
-    PHYPATCH_DB_GET(phydev, pPatchDb);
-
-    //PHYReg_bit w $PHYID 0xa01 21 15 0 0x0
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 21, 15, 0, 0x0)) < 0)
-        return ret;
-    //PHYReg_bit w $PHYID 0xa01 19 15 0 0x0000
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 19, 15, 0, 0x0000)) < 0)
-        return ret;
-    //PHYReg_bit w $PHYID 0xa01 17 15 0 0x0000
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 17, 15, 0, 0x0000)) < 0)
-        return ret;
-    return 0;
-}
-
-static int _phy_rtl826xb_flow_n11(struct phy_device *phydev)
-{
-    int ret = 0;
-    rt_phy_patch_db_t *pPatchDb = NULL;
-
-    PHYPATCH_DB_GET(phydev, pPatchDb);
-
-    //PHYReg_bit w $PHYID 0xa01 21 15 0 0x1
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 21, 15, 0, 0x1)) < 0)
-        return ret;
-    //PHYReg_bit w $PHYID 0xa01 19 15 0 0x0010
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 19, 15, 0, 0x0010)) < 0)
-        return ret;
-
-    return 0;
-}
-
-static int _phy_rtl826xb_flow_n12(struct phy_device *phydev)
-{
-    int ret = 0;
-    rt_phy_patch_db_t *pPatchDb = NULL;
-
-    PHYPATCH_DB_GET(phydev, pPatchDb);
-
-    //PHYReg_bit w $PHYID 0xa01 21 15 0 0x0
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 21, 15, 0, 0x0)) < 0)
-        return ret;
-    //PHYReg_bit w $PHYID 0xa01 19 15 0 0x0010
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 19, 15, 0, 0x0010)) < 0)
-        return ret;
-    //PHYReg_bit w $PHYID 0xa01 17 15 0 0x0000
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 17, 15, 0, 0x0000)) < 0)
-        return ret;
-
-    return 0;
-}
-
-static int _phy_rtl826xb_flow_n21(struct phy_device *phydev)
-{
-    int ret = 0;
-    rt_phy_patch_db_t *pPatchDb = NULL;
-
-    PHYPATCH_DB_GET(phydev, pPatchDb);
-
-    //PHYReg_bit w $PHYID 0xa01 21 15 0 0x1
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 21, 15, 0, 0x1)) < 0)
-        return ret;
-    //PHYReg_bit w $PHYID 0xa01 19 15 0 0x0020
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 19, 15, 0, 0x0020)) < 0)
-        return ret;
-
-    return 0;
-}
-
-static int _phy_rtl826xb_flow_n22(struct phy_device *phydev)
-{
-    int ret = 0;
-    rt_phy_patch_db_t *pPatchDb = NULL;
-
-    PHYPATCH_DB_GET(phydev, pPatchDb);
-
-    //PHYReg_bit w $PHYID 0xa01 21 15 0 0x0
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 21, 15, 0, 0x0)) < 0)
-        return ret;
-    //PHYReg_bit w $PHYID 0xa01 19 15 0 0x0020
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 19, 15, 0, 0x0020)) < 0)
-        return ret;
-    //PHYReg_bit w $PHYID 0xa01 17 15 0 0x0000
-    if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xa01, 17, 15, 0, 0x0000)) < 0)
-        return ret;
-
-    return 0;
-}
-
 static int _phy_rtl826xb_flow_s(struct phy_device *phydev)
 {
     struct rtk_phy_priv *priv = phydev->priv;
@@ -491,20 +381,6 @@ static int _phy_rtl826xb_flow_s(struct phy_device *phydev)
     }
 
     return 0;
-}
-
-static int _phy_rtl826xb_flow_cmpstart(struct phy_device *phydev)
-{
-    rt_phy_patch_db_t *pPatchDb = NULL;
-    PHYPATCH_DB_GET(phydev, pPatchDb);
-	return phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHYOCP, 0xFF, 1, 0, 11, 11, 0x0);
-}
-
-static int _phy_rtl826xb_flow_cmpend(struct phy_device *phydev)
-{
-    rt_phy_patch_db_t *pPatchDb = NULL;
-    PHYPATCH_DB_GET(phydev, pPatchDb);
-	return phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHYOCP, 0xFF, 1, 0, 11, 11, 0x1);
 }
 
 static int phy_rtl826xb_patch_op(struct phy_device *phydev, rtk_hwpatch_t *pPatch_data)
@@ -601,52 +477,16 @@ static int phy_rtl826xb_patch_flow(struct phy_device *phydev, u8 patch_flow)
             break;
 
         case RTK_PATCH_TYPE_FLOW(4):
-            if ((ret = _phy_rtl826xb_flow_n01(phydev)) < 0)
-        		return ret;
-            break;
-        case RTK_PATCH_TYPE_FLOW(5):
-            if ((ret = _phy_rtl826xb_flow_n02(phydev)) < 0)
-        		return ret;
-            break;
-
-        case RTK_PATCH_TYPE_FLOW(6):
-            if ((ret = _phy_rtl826xb_flow_n11(phydev)) < 0)
-        		return ret;
-            break;
-        case RTK_PATCH_TYPE_FLOW(7):
-            if ((ret = _phy_rtl826xb_flow_n12(phydev)) < 0)
-        		return ret;
-            break;
-
-        case RTK_PATCH_TYPE_FLOW(8):
-            if ((ret = _phy_rtl826xb_flow_n21(phydev)) < 0)
-        		return ret;
-            break;
-        case RTK_PATCH_TYPE_FLOW(9):
-            if ((ret = _phy_rtl826xb_flow_n22(phydev)) < 0)
-        		return ret;
-            break;
-
-        case RTK_PATCH_TYPE_FLOW(10):
             if ((ret = _phy_rtl826xb_flow_s(phydev)) < 0)
         		return ret;
             break;
 
-        case RTK_PATCH_TYPE_FLOW(11):
+        case RTK_PATCH_TYPE_FLOW(5):
             if ((ret = _phy_rtl826xb_flow_pi(phydev)) < 0)
         		return ret;
             break;
-        case RTK_PATCH_TYPE_FLOW(12):
+        case RTK_PATCH_TYPE_FLOW(6):
             if ((ret = _phy_rtl826xb_flow_r12(phydev)) < 0)
-        		return ret;
-            break;
-
-        case RTK_PATCH_TYPE_FLOW(13):
-            if ((ret = _phy_rtl826xb_flow_cmpstart(phydev)) < 0)
-        		return ret;
-            break;
-        case RTK_PATCH_TYPE_FLOW(14):
-            if ((ret = _phy_rtl826xb_flow_cmpend(phydev)) < 0)
         		return ret;
             break;
 
@@ -674,7 +514,7 @@ int phy_rtl826xb_patch_db_init(struct phy_device *phydev, rt_phy_patch_db_t **pP
     /* patch table */
     if (phydev->drv->phy_id != REALTEK_PHY_ID_RTL8261N)
     {
-        PHYPATCH_TABLE_ASSIGN(patch_db,  0, RTK_PATCH_TYPE_FLOW(12), NULL);
+        PHYPATCH_TABLE_ASSIGN(patch_db,  0, RTK_PATCH_TYPE_FLOW(6), NULL);
         PHYPATCH_TABLE_ASSIGN(patch_db,  1, PHY_PATCH_TYPE_NCTL0, rtl8264b_nctl0_conf);
         PHYPATCH_TABLE_ASSIGN(patch_db,  2, PHY_PATCH_TYPE_NCTL1, rtl8264b_nctl1_conf);
         PHYPATCH_TABLE_ASSIGN(patch_db,  3, PHY_PATCH_TYPE_NCTL2, rtl8264b_nctl2_conf);
@@ -691,8 +531,8 @@ int phy_rtl826xb_patch_db_init(struct phy_device *phydev, rt_phy_patch_db_t **pP
         PHYPATCH_TABLE_ASSIGN(patch_db, 14, PHY_PATCH_TYPE_AFE, rtl8264b_afe_conf);
         PHYPATCH_TABLE_ASSIGN(patch_db, 15, PHY_PATCH_TYPE_RTCT, rtl8264b_rtct_conf);
         PHYPATCH_TABLE_ASSIGN(patch_db, 16, RTK_PATCH_TYPE_FLOW(3), NULL);
-        PHYPATCH_TABLE_ASSIGN(patch_db, 17, RTK_PATCH_TYPE_FLOW(11), NULL);
-        PHYPATCH_TABLE_ASSIGN(patch_db, 18, RTK_PATCH_TYPE_FLOW(10), NULL);
+        PHYPATCH_TABLE_ASSIGN(patch_db, 17, RTK_PATCH_TYPE_FLOW(5), NULL);
+        PHYPATCH_TABLE_ASSIGN(patch_db, 18, RTK_PATCH_TYPE_FLOW(4), NULL);
     }
     else
     {
@@ -713,7 +553,7 @@ int phy_rtl826xb_patch_db_init(struct phy_device *phydev, rt_phy_patch_db_t **pP
         PHYPATCH_TABLE_ASSIGN(patch_db, 14, PHY_PATCH_TYPE_AFE, rtl8261n_c_afe_conf);
         PHYPATCH_TABLE_ASSIGN(patch_db, 15, PHY_PATCH_TYPE_RTCT, rtl8261n_c_rtct_conf);
         PHYPATCH_TABLE_ASSIGN(patch_db, 16, RTK_PATCH_TYPE_FLOW(3), NULL);
-        PHYPATCH_TABLE_ASSIGN(patch_db, 17, RTK_PATCH_TYPE_FLOW(10), NULL);
+        PHYPATCH_TABLE_ASSIGN(patch_db, 17, RTK_PATCH_TYPE_FLOW(4), NULL);
     }
     *pPhy_patchDb = patch_db;
     return ret;
