@@ -168,6 +168,13 @@ static int rtkphy_config_init(struct phy_device *phydev)
             if (priv->pnswap_rx)
                 phy_set_bits_mmd(phydev, MDIO_MMD_VEND1, REALTEK_SERDES_GLOBAL_CFG, REALTEK_HSI_INV);
 
+            ret = rtk_phylib_826xb_intr_init(phydev);
+            if (ret)
+            {
+                phydev_err(phydev, "%s:%u [RTL8261N/RTL826XB] rtk_phylib_826xb_intr_init failed!! 0x%X\n", __FUNCTION__, __LINE__, ret);
+                return ret;
+            }
+
             break;
         default:
             phydev_err(phydev, "%s:%u Unknow phy_id: 0x%X\n", __FUNCTION__, __LINE__, phydev->drv->phy_id);
@@ -269,6 +276,31 @@ static int rtkphy_c45_read_status(struct phy_device *phydev)
     return ret;
 }
 
+static int rtl826xb_config_intr(struct phy_device *phydev)
+{
+    int32 ret = 0;
+
+    RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_intr_enable(phydev, phydev->interrupts == PHY_INTERRUPT_ENABLED));
+    return ret;
+}
+
+static irqreturn_t rtl826xb_handle_intr(struct phy_device *phydev)
+{
+    int ret;
+    uint32 status = 0;
+
+    if ((ret = rtk_phylib_826xb_intr_read_clear(phydev, &status)) != 0)
+		return IRQ_NONE;
+
+	if (status & RTK_PHY_INTR_LINK_CHANGE)
+    {
+        pr_debug("[%s,%d] RTK_PHY_INTR_LINK_CHANGE\n", __FUNCTION__, __LINE__);
+        phy_mac_interrupt(phydev);
+    }
+
+	return status ? IRQ_HANDLED : IRQ_NONE;
+}
+
 static struct phy_driver rtk_phy_drivers[] = {
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8261N),
@@ -281,6 +313,8 @@ static struct phy_driver rtk_phy_drivers[] = {
         .config_aneg        = rtkphy_c45_config_aneg,
         .aneg_done          = genphy_c45_aneg_done,
         .read_status        = rtkphy_c45_read_status,
+        .config_intr        = rtl826xb_config_intr,
+        .handle_interrupt   = rtl826xb_handle_intr,
     },
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264),
@@ -293,6 +327,8 @@ static struct phy_driver rtk_phy_drivers[] = {
         .config_aneg        = rtkphy_c45_config_aneg,
         .aneg_done          = genphy_c45_aneg_done,
         .read_status        = rtkphy_c45_read_status,
+        .config_intr        = rtl826xb_config_intr,
+        .handle_interrupt   = rtl826xb_handle_intr,
     },
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264B),
@@ -305,6 +341,8 @@ static struct phy_driver rtk_phy_drivers[] = {
         .config_aneg        = rtkphy_c45_config_aneg,
         .aneg_done          = genphy_c45_aneg_done,
         .read_status        = rtkphy_c45_read_status,
+        .config_intr        = rtl826xb_config_intr,
+        .handle_interrupt   = rtl826xb_handle_intr,
     },
 };
 

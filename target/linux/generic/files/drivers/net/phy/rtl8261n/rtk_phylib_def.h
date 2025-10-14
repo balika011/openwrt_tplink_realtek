@@ -116,6 +116,18 @@ typedef enum rtk_phypatch_type_e
 #define RTK_PATCH_TYPE_FLOWID_MAX   PHY_PATCH_TYPE_END
 #define RTK_PATCH_SEQ_MAX     ( PHY_PATCH_TYPE_END + RTK_PATCH_TYPE_FLOWID_MAX -1)
 
+/* Interrupt */
+#define RTK_PHY_INTR_NEXT_PAGE_RECV       (BIT_0)
+#define RTK_PHY_INTR_AN_COMPLETE          (BIT_1)
+#define RTK_PHY_INTR_LINK_CHANGE          (BIT_2)
+#define RTK_PHY_INTR_ALDPS_STATE_CHANGE   (BIT_3)
+#define RTK_PHY_INTR_RLFD                 (BIT_4)
+#define RTK_PHY_INTR_TM_LOW               (BIT_5)
+#define RTK_PHY_INTR_TM_HIGH              (BIT_6)
+#define RTK_PHY_INTR_FATAL_ERROR          (BIT_7)
+#define RTK_PHY_INTR_MACSEC               (BIT_8)
+#define RTK_PHY_INTR_PTP1588              (BIT_9)
+
 typedef struct rtk_hwpatch_s
 {
     uint8    patch_op;
