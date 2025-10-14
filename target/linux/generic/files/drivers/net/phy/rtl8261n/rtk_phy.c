@@ -7,6 +7,7 @@
 #include <linux/module.h>
 #include <linux/phy.h>
 #include <linux/property.h>
+#include <linux/netdevice.h>
 
 #include "phy_rtl826xb_patch.h"
 #include "rtk_phylib_rtl826xb.h"
@@ -292,10 +293,16 @@ static irqreturn_t rtl826xb_handle_intr(struct phy_device *phydev)
     if ((ret = rtk_phylib_826xb_intr_read_clear(phydev, &status)) != 0)
 		return IRQ_NONE;
 
-	if (status & RTK_PHY_INTR_LINK_CHANGE)
+    if (status & RTK_PHY_INTR_LINK_CHANGE)
     {
         pr_debug("[%s,%d] RTK_PHY_INTR_LINK_CHANGE\n", __FUNCTION__, __LINE__);
         phy_mac_interrupt(phydev);
+    }
+
+    if (status & RTK_PHY_INTR_WOL)
+    {
+        pr_debug("[%s,%d] RTK_PHY_INTR_WOL\n", __FUNCTION__, __LINE__);
+        rtk_phylib_826xb_wol_reset(phydev);
     }
 
 	return status ? IRQ_HANDLED : IRQ_NONE;
@@ -345,6 +352,83 @@ static int rtl826xb_set_tunable(struct phy_device *phydev, struct ethtool_tunabl
     }
 }
 
+static int rtl826xb_set_wol(struct phy_device *phydev,
+              struct ethtool_wolinfo *wol)
+{
+    int32 ret = 0;
+    uint8 *mac_addr = NULL;
+    uint32 rtk_wol_opts = 0;
+
+    struct net_device *ndev = phydev->attached_dev;
+    if (!ndev)
+        return -EINVAL;
+
+    if (wol->wolopts & ~( WAKE_PHY | WAKE_MAGIC | WAKE_UCAST | WAKE_BCAST | WAKE_MCAST))
+        return -EOPNOTSUPP;
+
+    if (wol->wolopts & (WAKE_MAGIC | WAKE_UCAST))
+    {
+        mac_addr = (uint8 *) ndev->dev_addr;
+        RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_wol_unicast_addr_set(phydev, mac_addr));
+    }
+
+    if (wol->wolopts & WAKE_MCAST)
+    {
+        RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_wol_multicast_mask_reset(phydev));
+
+        if (!netdev_mc_empty(ndev))
+        {
+            struct netdev_hw_addr *ha;
+            netdev_for_each_mc_addr(ha, ndev)
+            {
+                pr_info("[%s,%d] mac: %pM \n", __FUNCTION__, __LINE__, ha->addr);
+                RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_wol_multicast_mask_add(phydev, rtk_phylib_826xb_wol_multicast_mac2offset(ha->addr)));
+            }
+        }
+    }
+
+    if (wol->wolopts & WAKE_PHY)
+        rtk_wol_opts |= RTK_WOL_OPT_LINK;
+    if (wol->wolopts & WAKE_MAGIC)
+        rtk_wol_opts |= RTK_WOL_OPT_MAGIC;
+    if (wol->wolopts & WAKE_UCAST)
+        rtk_wol_opts |= RTK_WOL_OPT_UCAST;
+    if (wol->wolopts & WAKE_BCAST)
+        rtk_wol_opts |= RTK_WOL_OPT_BCAST;
+    if (wol->wolopts & WAKE_MCAST)
+        rtk_wol_opts |= RTK_WOL_OPT_MCAST;
+
+    RTK_PHYLIB_ERR_CHK(rtk_phylib_826xb_wol_set(phydev, rtk_wol_opts));
+
+    return 0;
+}
+
+
+static void rtl826xb_get_wol(struct phy_device *phydev,
+               struct ethtool_wolinfo *wol)
+{
+    int32 ret = 0;
+    uint32 rtk_wol_opts = 0;
+
+    wol->supported = WAKE_PHY | WAKE_MAGIC | WAKE_UCAST | WAKE_BCAST | WAKE_MCAST;
+    wol->wolopts = 0;
+
+    ret = rtk_phylib_826xb_wol_get(phydev, &rtk_wol_opts);
+    if (ret != 0)
+        return;
+
+    if (rtk_wol_opts & RTK_WOL_OPT_LINK)
+        wol->wolopts |= WAKE_PHY;
+    if (rtk_wol_opts & RTK_WOL_OPT_MAGIC)
+        wol->wolopts |= WAKE_MAGIC;
+    if (rtk_wol_opts & RTK_WOL_OPT_UCAST)
+        wol->wolopts |= WAKE_UCAST;
+    if (rtk_wol_opts & RTK_WOL_OPT_MCAST)
+        wol->wolopts |= WAKE_MCAST;
+    if (rtk_wol_opts & RTK_WOL_OPT_BCAST)
+        wol->wolopts |= WAKE_BCAST;
+}
+
 static struct phy_driver rtk_phy_drivers[] = {
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8261N),
@@ -361,6 +445,8 @@ static struct phy_driver rtk_phy_drivers[] = {
         .handle_interrupt   = rtl826xb_handle_intr,
         .get_tunable        = rtl826xb_get_tunable,
         .set_tunable        = rtl826xb_set_tunable,
+        .set_wol            = rtl826xb_set_wol,
+        .get_wol            = rtl826xb_get_wol,
     },
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264),
@@ -377,6 +463,8 @@ static struct phy_driver rtk_phy_drivers[] = {
         .handle_interrupt   = rtl826xb_handle_intr,
         .get_tunable        = rtl826xb_get_tunable,
         .set_tunable        = rtl826xb_set_tunable,
+        .set_wol            = rtl826xb_set_wol,
+        .get_wol            = rtl826xb_get_wol,
     },
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264B),
@@ -393,6 +481,8 @@ static struct phy_driver rtk_phy_drivers[] = {
         .handle_interrupt   = rtl826xb_handle_intr,
         .get_tunable        = rtl826xb_get_tunable,
         .set_tunable        = rtl826xb_set_tunable,
+        .set_wol            = rtl826xb_set_wol,
+        .get_wol            = rtl826xb_get_wol,
     },
 };
 
@@ -401,8 +491,8 @@ module_phy_driver(rtk_phy_drivers);
 
 static struct mdio_device_id __maybe_unused rtk_phy_tbl[] = {
     { PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8261N) },
-    { PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264B) },
     { PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264) },
+    { PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264B) },
     { },
 };
 

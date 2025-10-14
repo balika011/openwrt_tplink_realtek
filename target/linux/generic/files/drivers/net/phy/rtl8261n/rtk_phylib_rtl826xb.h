@@ -22,4 +22,13 @@ int rtk_phylib_826xb_intr_init(struct phy_device *phydev);
 int rtk_phylib_826xb_link_down_power_saving_set(struct phy_device *phydev, uint32 ena);
 int rtk_phylib_826xb_link_down_power_saving_get(struct phy_device *phydev, uint32 *pEna);
 
+/* Wake on Lan */
+int rtk_phylib_826xb_wol_reset(struct phy_device *phydev);
+int rtk_phylib_826xb_wol_set(struct phy_device *phydev, uint32 wol_opts);
+int rtk_phylib_826xb_wol_get(struct phy_device *phydev, uint32 *pWol_opts);
+int rtk_phylib_826xb_wol_unicast_addr_set(struct phy_device *phydev, uint8 *mac_addr);
+int rtk_phylib_826xb_wol_multicast_mask_add(struct phy_device *phydev, uint32 offset);
+int rtk_phylib_826xb_wol_multicast_mask_reset(struct phy_device *phydev);
+uint32 rtk_phylib_826xb_wol_multicast_mac2offset(uint8 *mac_addr);
+
 #endif /* __RTK_PHYLIB_RTL826XB_H */

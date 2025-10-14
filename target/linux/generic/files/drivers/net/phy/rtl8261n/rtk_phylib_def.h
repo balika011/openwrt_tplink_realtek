@@ -127,6 +127,7 @@ typedef enum rtk_phypatch_type_e
 #define RTK_PHY_INTR_FATAL_ERROR          (BIT_7)
 #define RTK_PHY_INTR_MACSEC               (BIT_8)
 #define RTK_PHY_INTR_PTP1588              (BIT_9)
+#define RTK_PHY_INTR_WOL                  (BIT_10)
 
 typedef struct rtk_hwpatch_s
 {
@@ -165,5 +166,14 @@ typedef struct rt_phy_patch_db_s
     rtk_hwpatch_seq_t table[RTK_PATCH_SEQ_MAX];
 
 } rt_phy_patch_db_t;
+
+typedef enum rtk_wol_opt_e
+{
+    RTK_WOL_OPT_LINK   = (0x1U << 0),
+    RTK_WOL_OPT_MAGIC  = (0x1U << 1),
+    RTK_WOL_OPT_UCAST  = (0x1U << 2),
+    RTK_WOL_OPT_MCAST  = (0x1U << 3),
+    RTK_WOL_OPT_BCAST  = (0x1U << 4),
+} rtk_wol_opt_t;
 
 #endif /* __RTK_PHYLIB_DEF_H */
