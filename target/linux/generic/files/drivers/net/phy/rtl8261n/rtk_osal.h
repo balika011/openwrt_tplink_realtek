@@ -37,9 +37,5 @@ void *osal_alloc(u32 size);
 #include <linux/kernel.h>
 #include <linux/string.h>
 
-/* reg access */
-int phy_common_general_reg_mmd_get(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 *pData);
-int phy_common_general_reg_mmd_set(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 data);
-
 
 #endif /* __RTK_PHY_OSAL_H */

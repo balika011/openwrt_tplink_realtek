@@ -50,15 +50,14 @@ static u16 _phy_rtl826xb_mmd_convert(u16 page, u16 addr)
 static int
 _phy_rtl826xb_patch_wait(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 data, u32 mask)
 {
-    int ret = 0;
     u32 rData = 0;
     u32 cnt = 0;
     WAIT_COMPLETE_VAR()
 
     WAIT_COMPLETE(PHY_PATCH_WAIT_TIMEOUT)
     {
-        if ((ret = phy_common_general_reg_mmd_get(phydev, mmdAddr, mmdReg, &rData)) < 0)
-            return ret;
+        if ((rData = phy_read_mmd(phydev, mmdAddr, mmdReg)) < 0)
+            return rData;
 
         ++cnt;
         if ((rData & mask) == data)
@@ -79,7 +78,6 @@ _phy_rtl826xb_patch_wait(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32
 static int
 _phy_rtl826xb_patch_wait_not_equal(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 data, u32 mask)
 {
-    int ret = 0;
     u32 rData = 0;
     u32 cnt = 0;
     WAIT_COMPLETE_VAR()
@@ -87,8 +85,8 @@ _phy_rtl826xb_patch_wait_not_equal(struct phy_device *phydev, u32 mmdAddr, u32 m
 
     WAIT_COMPLETE(PHY_PATCH_WAIT_TIMEOUT)
     {
-        if ((ret = phy_common_general_reg_mmd_get(phydev, mmdAddr, mmdReg, &rData)) < 0)
-            return ret;
+        if ((rData = phy_read_mmd(phydev, mmdAddr, mmdReg)) < 0)
+            return rData;
 
         ++cnt;
         if ((rData & mask) != data)
@@ -108,13 +106,14 @@ _phy_rtl826xb_patch_wait_not_equal(struct phy_device *phydev, u32 mmdAddr, u32 m
 static int
 _phy_rtl826xb_patch_top_get(struct phy_device *phydev, u32 topPage, u32 topReg, u32 *pData)
 {
-    int ret = 0;
     u32 rData = 0;
     u32 topAddr = (topPage * 8) + (topReg - 16);
 
-    if ((ret = phy_common_general_reg_mmd_get(phydev, MDIO_MMD_VEND1, topAddr, &rData)) < 0)
-        return ret;
+    if ((rData = phy_read_mmd(phydev, MDIO_MMD_VEND1, topAddr)) < 0)
+        return rData;
+
     *pData = rData;
+
     return 0;
 }
 
@@ -122,7 +121,7 @@ static int
 _phy_rtl826xb_patch_top_set(struct phy_device *phydev, u32 topPage, u32 topReg, u32 wData)
 {
     u32 topAddr = (topPage * 8) + (topReg - 16);
-    return phy_common_general_reg_mmd_set(phydev, MDIO_MMD_VEND1, topAddr, wData);
+    return phy_write_mmd(phydev, MDIO_MMD_VEND1, topAddr, wData);
 }
 
 static int
@@ -298,8 +297,9 @@ static int _phy_rtl826xb_flow_pi(struct phy_device *phydev)
     RT_ERR_CHK(phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHYOCP, 0xFF, 31, 0xbf86, 7, 7, 0x0), ret);
 
     //PP_PHYReg_bit r $PHYID 0xbc62 12 8
-    if ((ret = phy_common_general_reg_mmd_get(phydev, MDIO_MMD_VEND2, 0xbc62, &rData)) < 0)
-        return ret;
+    if ((rData = phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xbc62)) < 0)
+        return rData;
+
     rData = REG32_FIELD_GET(rData, 8, 0x1F00);
     for (cnt = 0; cnt <= rData; cnt++)
     {
@@ -477,19 +477,21 @@ static int phy_rtl826xb_patch_op(struct phy_device *phydev, rtk_hwpatch_t *pPatc
             reg = _phy_rtl826xb_mmd_convert(pPatch_data->pagemmd, pPatch_data->addr);
             if ((pPatch_data->msb != 15) || (pPatch_data->lsb != 0))
             {
-                RT_ERR_CHK(phy_common_general_reg_mmd_get(phydev, MDIO_MMD_VEND2, reg, &rData), ret);
+                if ((rData = phy_read_mmd(phydev, MDIO_MMD_VEND2, reg)) < 0)
+                    return rData;
             }
             wData = REG32_FIELD_SET(rData, pPatch_data->data, pPatch_data->lsb, mask);
-            RT_ERR_CHK(phy_common_general_reg_mmd_set(phydev, MDIO_MMD_VEND2, reg, wData), ret);
+            RT_ERR_CHK(phy_write_mmd(phydev, MDIO_MMD_VEND2, reg, wData), ret);
             break;
 
         case RTK_PATCH_OP_PHYOCP:
             if ((pPatch_data->msb != 15) || (pPatch_data->lsb != 0))
             {
-                RT_ERR_CHK(phy_common_general_reg_mmd_get(phydev, MDIO_MMD_VEND2, pPatch_data->addr, &rData), ret);
+                if ((rData = phy_read_mmd(phydev, MDIO_MMD_VEND2, pPatch_data->addr)) < 0)
+                    return rData;
             }
             wData = REG32_FIELD_SET(rData, pPatch_data->data, pPatch_data->lsb, mask);
-            RT_ERR_CHK(phy_common_general_reg_mmd_set(phydev, MDIO_MMD_VEND2, pPatch_data->addr, wData), ret);
+            RT_ERR_CHK(phy_write_mmd(phydev, MDIO_MMD_VEND2, pPatch_data->addr, wData), ret);
             break;
 
         case RTK_PATCH_OP_TOP:

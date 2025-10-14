@@ -34,20 +34,3 @@ osal_alloc(u32 size)
 {
     return kmalloc((size_t)size, GFP_ATOMIC);
 }
-
-int
-phy_common_general_reg_mmd_get(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 *pData)
-{
-    int rData = 0;
-    rData = phy_read_mmd(phydev, mmdAddr, mmdReg);
-    if (rData < 0)
-        return rData;
-    *pData = (u32)rData;
-    return 0;
-}
-
-int
-phy_common_general_reg_mmd_set(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 data)
-{
-    return phy_write_mmd(phydev, mmdAddr, mmdReg, data);
-}
