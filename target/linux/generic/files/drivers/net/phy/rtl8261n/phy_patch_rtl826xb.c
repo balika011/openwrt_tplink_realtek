@@ -7,7 +7,7 @@
 /*
  * Include Files
  */
-#include "phy_rtl826xb_patch.h"
+#include "phy_patch_rtl826xb.h"
 #include "rtk_phy.h"
 #include "construct/conf_rtl8264b.c"
 #include "construct/conf_rtl8261n_c.c"
@@ -46,8 +46,7 @@ static u16 _phy_rtl826xb_mmd_convert(u16 page, u16 addr)
     return reg;
 }
 
-static int
-_phy_rtl826xb_patch_wait(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 data, u32 mask)
+static int _phy_patch_rtl826xb_wait(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 data, u32 mask)
 {
     u32 rData = 0;
     u32 cnt = 0;
@@ -73,8 +72,7 @@ _phy_rtl826xb_patch_wait(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32
     return 0;
 }
 
-static int
-_phy_rtl826xb_patch_wait_not_equal(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 data, u32 mask)
+static int _phy_patch_rtl826xb_wait_not_equal(struct phy_device *phydev, u32 mmdAddr, u32 mmdReg, u32 data, u32 mask)
 {
     u32 rData = 0;
     u32 cnt = 0;
@@ -101,8 +99,7 @@ _phy_rtl826xb_patch_wait_not_equal(struct phy_device *phydev, u32 mmdAddr, u32 m
     return 0;
 }
 
-static int
-_phy_rtl826xb_patch_top_get(struct phy_device *phydev, u32 topPage, u32 topReg, u32 *pData)
+static int _phy_patch_rtl826xb_top_get(struct phy_device *phydev, u32 topPage, u32 topReg, u32 *pData)
 {
     u32 rData = 0;
     u32 topAddr = (topPage * 8) + (topReg - 16);
@@ -115,39 +112,36 @@ _phy_rtl826xb_patch_top_get(struct phy_device *phydev, u32 topPage, u32 topReg, 
     return 0;
 }
 
-static int
-_phy_rtl826xb_patch_top_set(struct phy_device *phydev, u32 topPage, u32 topReg, u32 wData)
+static int _phy_patch_rtl826xb_top_set(struct phy_device *phydev, u32 topPage, u32 topReg, u32 wData)
 {
     u32 topAddr = (topPage * 8) + (topReg - 16);
     return phy_write_mmd(phydev, MDIO_MMD_VEND1, topAddr, wData);
 }
 
-static int
-_phy_rtl826xb_patch_sds_get(struct phy_device *phydev, u32 sdsPage, u32 sdsReg, u32 *pData)
+static int _phy_patch_rtl826xb_sds_get(struct phy_device *phydev, u32 sdsPage, u32 sdsReg, u32 *pData)
 {
     int ret = 0;
     u32 rData = 0;
     u32 sdsAddr = 0x8000 + (sdsReg << 6) + sdsPage;
 
-    if ((ret = _phy_rtl826xb_patch_top_set(phydev, 40, 19, sdsAddr)) < 0)
+    if ((ret = _phy_patch_rtl826xb_top_set(phydev, 40, 19, sdsAddr)) < 0)
         return ret;
-    if ((ret = _phy_rtl826xb_patch_top_get(phydev, 40, 18, &rData)) < 0)
+    if ((ret = _phy_patch_rtl826xb_top_get(phydev, 40, 18, &rData)) < 0)
         return ret;
     *pData = rData;
-    return _phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, 0x143, 0, BIT(15));
+    return _phy_patch_rtl826xb_wait(phydev, MDIO_MMD_VEND1, 0x143, 0, BIT(15));
 }
 
-static int
-_phy_rtl826xb_patch_sds_set(struct phy_device *phydev, u32 sdsPage, u32 sdsReg, u32 wData)
+static int _phy_patch_rtl826xb_sds_set(struct phy_device *phydev, u32 sdsPage, u32 sdsReg, u32 wData)
 {
     int ret = 0;
     u32 sdsAddr = 0x8800 + (sdsReg << 6) + sdsPage;
 
-    if ((ret = _phy_rtl826xb_patch_top_set(phydev, 40, 17, wData)) < 0)
+    if ((ret = _phy_patch_rtl826xb_top_set(phydev, 40, 17, wData)) < 0)
         return ret;
-    if ((ret = _phy_rtl826xb_patch_top_set(phydev, 40, 19, sdsAddr)) < 0)
+    if ((ret = _phy_patch_rtl826xb_top_set(phydev, 40, 19, sdsAddr)) < 0)
         return ret;
-    return _phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, 0x143, 0, BIT(15));
+    return _phy_patch_rtl826xb_wait(phydev, MDIO_MMD_VEND1, 0x143, 0, BIT(15));
 }
 
 static int _phy_rtl826xb_flow_r1(struct phy_device *phydev)
@@ -165,7 +159,7 @@ static int _phy_rtl826xb_flow_r1(struct phy_device *phydev)
         return ret;
 
     //set patch_rdy [PHYReg_bit r $PHYID 0xb80 16 6 6] ; Wait for patch ready = 1
-    if ((ret = _phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT(6), BIT(6))) < 0)
+    if ((ret = _phy_patch_rtl826xb_wait(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT(6), BIT(6))) < 0)
         return ret;
 
     //PHYReg w $PHYID 0xa43 27 $0x8023
@@ -199,7 +193,7 @@ static int _phy_rtl826xb_flow_r12(struct phy_device *phydev)
         return ret;
 
     //set patch_rdy [PHYReg_bit r $PHYID 0xb80 16 6 6] ; Wait for patch ready = 1
-    if ((ret = _phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT(6), BIT(6))) < 0)
+    if ((ret = _phy_patch_rtl826xb_wait(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT(6), BIT(6))) < 0)
         return ret;
 
     //PHYReg w $PHYID 0xa43 27 $0x8023
@@ -246,7 +240,7 @@ static int _phy_rtl826xb_flow_r2(struct phy_device *phydev)
     if ((ret = phy_patch_op(pPatchDb, phydev, RTK_PATCH_OP_PHY, 0xFF, 0xb82, 16, 4, 4, 0x0)) < 0)
         return ret;
     //set patch_rdy [PHYReg_bit r $PHYID 0xb80 16 6 6] ; Wait for patch ready != 1
-    if ((ret = _phy_rtl826xb_patch_wait_not_equal(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT(6), BIT(6))) < 0)
+    if ((ret = _phy_patch_rtl826xb_wait_not_equal(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xb80, 16), BIT(6), BIT(6))) < 0)
         return ret;
 
     return 0;
@@ -267,7 +261,7 @@ static int _phy_rtl826xb_flow_l1(struct phy_device *phydev)
         return ret;
 
     //set pcs_state [PHYReg_bit r $PHYID 0xa60 16 7 0] ; Wait for pcs state = 1
-    if ((ret = _phy_rtl826xb_patch_wait(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xa60, 16), 0x1, 0xFF)) < 0)
+    if ((ret = _phy_patch_rtl826xb_wait(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xa60, 16), 0x1, 0xFF)) < 0)
         return ret;
 
     return 0;
@@ -285,7 +279,7 @@ static int _phy_rtl826xb_flow_l2(struct phy_device *phydev)
         return ret;
 
     //set pcs_state [PHYReg_bit r $PHYID 0xa60 16 7 0] ; Wait for pcs state != 1
-    if ((ret = _phy_rtl826xb_patch_wait_not_equal(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xa60, 16), 0x1, 0xFF)) < 0)
+    if ((ret = _phy_patch_rtl826xb_wait_not_equal(phydev, MDIO_MMD_VEND1, _phy_rtl826xb_mmd_convert(0xa60, 16), 0x1, 0xFF)) < 0)
         return ret;
 
     return 0;
@@ -383,7 +377,7 @@ static int _phy_rtl826xb_flow_s(struct phy_device *phydev)
     return 0;
 }
 
-static int phy_rtl826xb_patch_op(struct phy_device *phydev, rtk_hwpatch_t *pPatch_data)
+static int phy_patch_rtl826xb_op(struct phy_device *phydev, rtk_hwpatch_t *pPatch_data)
 {
     int ret = 0;
     u32 rData = 0, wData = 0;
@@ -420,22 +414,22 @@ static int phy_rtl826xb_patch_op(struct phy_device *phydev, rtk_hwpatch_t *pPatc
         case RTK_PATCH_OP_TOP:
             if ((pPatch_data->msb != 15) || (pPatch_data->lsb != 0))
             {
-                if ((ret = _phy_rtl826xb_patch_top_get(phydev, pPatch_data->pagemmd, pPatch_data->addr, &rData)) < 0)
+                if ((ret = _phy_patch_rtl826xb_top_get(phydev, pPatch_data->pagemmd, pPatch_data->addr, &rData)) < 0)
         		return ret;
             }
             wData = REG32_FIELD_SET(rData, pPatch_data->data, pPatch_data->lsb, mask);
-            if ((ret = _phy_rtl826xb_patch_top_set(phydev, pPatch_data->pagemmd, pPatch_data->addr, wData)) < 0)
+            if ((ret = _phy_patch_rtl826xb_top_set(phydev, pPatch_data->pagemmd, pPatch_data->addr, wData)) < 0)
         		return ret;
             break;
 
         case RTK_PATCH_OP_PSDS0:
             if ((pPatch_data->msb != 15) || (pPatch_data->lsb != 0))
             {
-                if ((ret = _phy_rtl826xb_patch_sds_get(phydev, pPatch_data->pagemmd, pPatch_data->addr, &rData)) < 0)
+                if ((ret = _phy_patch_rtl826xb_sds_get(phydev, pPatch_data->pagemmd, pPatch_data->addr, &rData)) < 0)
         			return ret;
             }
             wData = REG32_FIELD_SET(rData, pPatch_data->data, pPatch_data->lsb, mask);
-            if ((ret = _phy_rtl826xb_patch_sds_set(phydev, pPatch_data->pagemmd, pPatch_data->addr, wData)) < 0)
+            if ((ret = _phy_patch_rtl826xb_sds_set(phydev, pPatch_data->pagemmd, pPatch_data->addr, wData)) < 0)
         		return ret;
             break;
 
@@ -451,7 +445,7 @@ static int phy_rtl826xb_patch_op(struct phy_device *phydev, rtk_hwpatch_t *pPatc
     return ret;
 }
 
-static int phy_rtl826xb_patch_flow(struct phy_device *phydev, u8 patch_flow)
+static int phy_patch_rtl826xb_flow(struct phy_device *phydev, u8 patch_flow)
 {
     int ret = 0;
 
@@ -496,7 +490,7 @@ static int phy_rtl826xb_patch_flow(struct phy_device *phydev, u8 patch_flow)
     return 0;
 }
 
-int phy_rtl826xb_patch_db_init(struct phy_device *phydev, rt_phy_patch_db_t **pPhy_patchDb)
+int phy_patch_rtl826xb_db_init(struct phy_device *phydev, rt_phy_patch_db_t **pPhy_patchDb)
 {
     int ret = 0;
     rt_phy_patch_db_t *patch_db = NULL;
@@ -508,8 +502,8 @@ int phy_rtl826xb_patch_db_init(struct phy_device *phydev, rt_phy_patch_db_t **pP
     memset(patch_db, 0x0, sizeof(rt_phy_patch_db_t));
 
     /* patch callback */
-    patch_db->fPatch_op = phy_rtl826xb_patch_op;
-    patch_db->fPatch_flow = phy_rtl826xb_patch_flow;
+    patch_db->fPatch_op = phy_patch_rtl826xb_op;
+    patch_db->fPatch_flow = phy_patch_rtl826xb_flow;
 
     /* patch table */
     if (phydev->drv->phy_id != REALTEK_PHY_ID_RTL8261N)

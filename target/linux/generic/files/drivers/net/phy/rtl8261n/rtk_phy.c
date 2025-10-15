@@ -11,7 +11,7 @@
 #include <linux/crc32.h>
 
 #include "phy_patch.h"
-#include "phy_rtl826xb_patch.h"
+#include "phy_patch_rtl826xb.h"
 #include "rtk_phy.h"
 
 #define REALTEK_SERDES_GLOBAL_CFG       0x1c
@@ -66,7 +66,7 @@ static int rtl826xb_probe(struct phy_device *phydev)
 
     memset(priv, 0, sizeof(struct rtk_phy_priv));
 
-    if (phy_rtl826xb_patch_db_init(phydev, &(priv->patch)) < 0)
+    if (phy_patch_rtl826xb_db_init(phydev, &(priv->patch)) < 0)
         return -ENOMEM;
 
     if (phydev->drv->phy_id == REALTEK_PHY_ID_RTL8261N)
