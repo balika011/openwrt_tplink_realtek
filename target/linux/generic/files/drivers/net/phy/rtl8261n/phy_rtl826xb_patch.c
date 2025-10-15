@@ -8,7 +8,7 @@
  * Include Files
  */
 #include "phy_rtl826xb_patch.h"
-#include "rtk_phylib.h"
+#include "rtk_phy.h"
 #include "construct/conf_rtl8264b.c"
 #include "construct/conf_rtl8261n_c.c"
 #include "rtk_phy.h"

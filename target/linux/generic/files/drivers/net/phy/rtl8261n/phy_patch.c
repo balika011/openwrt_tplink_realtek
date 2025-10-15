@@ -8,7 +8,7 @@
  * Include Files
  */
 #include "phy_patch.h"
-#include "rtk_phylib.h"
+#include "rtk_phy.h"
 
 /*
  * Function Declaration

@@ -8,10 +8,10 @@
 #include <linux/phy.h>
 #include <linux/property.h>
 #include <linux/netdevice.h>
+#include <linux/crc32.h>
 
 #include "phy_patch.h"
 #include "phy_rtl826xb_patch.h"
-#include "rtk_phylib.h"
 #include "rtk_phy.h"
 
 #define REALTEK_SERDES_GLOBAL_CFG       0x1c
@@ -41,8 +41,8 @@ static int rtl826xb_get_features(struct phy_device *phydev)
 
     switch (priv->phytype)
     {
-        case RTK_PHYLIB_RTL8251L:
-        case RTK_PHYLIB_RTL8254B:
+        case RTK_PHY_RTL8251L:
+        case RTK_PHY_RTL8254B:
             linkmode_clear_bit(ETHTOOL_LINK_MODE_10000baseT_Full_BIT,
                        phydev->supported);
             break;
@@ -77,7 +77,7 @@ static int rtl826xb_probe(struct phy_device *phydev)
 
         if (data == 0x8251)
         {
-            priv->phytype = RTK_PHYLIB_RTL8251L;
+            priv->phytype = RTK_PHY_RTL8251L;
         }
         else
         {
@@ -87,11 +87,11 @@ static int rtl826xb_probe(struct phy_device *phydev)
 
             if ((data & 0xFFC0) == 0x1140)
             {
-                priv->phytype = RTK_PHYLIB_RTL8261BE;
+                priv->phytype = RTK_PHY_RTL8261BE;
             }
             else
             {
-                priv->phytype = RTK_PHYLIB_RTL8261N;
+                priv->phytype = RTK_PHY_RTL8261N;
             }
         }
     }
@@ -103,18 +103,18 @@ static int rtl826xb_probe(struct phy_device *phydev)
 
         if (data == 0x8254)
         {
-            priv->phytype = RTK_PHYLIB_RTL8254B;
+            priv->phytype = RTK_PHY_RTL8254B;
         }
         else
         {
-            priv->phytype = RTK_PHYLIB_RTL8264B;
+            priv->phytype = RTK_PHY_RTL8264B;
         }
     }
     else if (phydev->drv->phy_id == REALTEK_PHY_ID_RTL8264)
     {
-         priv->phytype = RTK_PHYLIB_RTL8264;
+         priv->phytype = RTK_PHY_RTL8264;
     }
-    priv->isBasePort = (phydev->drv->phy_id == REALTEK_PHY_ID_RTL8261N) ? (1) : (((phydev->mdio.addr % 4) == 0) ? (1) : (0));
+
     priv->pnswap_tx = device_property_read_bool(dev, "realtek,pnswap-tx");
     priv->pnswap_rx = device_property_read_bool(dev, "realtek,pnswap-rx");
     priv->rtk_serdes_patch = device_property_read_bool(dev, "realtek,rtk-serdes-patch");
@@ -128,14 +128,40 @@ static const char *rtkphy_get_phy_name(struct phy_device *phydev)
     struct rtk_phy_priv *priv = phydev->priv;
     switch (priv->phytype)
     {
-        case RTK_PHYLIB_RTL8251L:  return "RTL8251L";
-        case RTK_PHYLIB_RTL8254B:  return "RTL8254B";
-        case RTK_PHYLIB_RTL8261N:  return "RTL8261N";
-        case RTK_PHYLIB_RTL8261BE: return "RTL8261BE";
-        case RTK_PHYLIB_RTL8264:   return "RTL8264";
-        case RTK_PHYLIB_RTL8264B:  return "RTL8264B";
+        case RTK_PHY_RTL8251L:  return "RTL8251L";
+        case RTK_PHY_RTL8254B:  return "RTL8254B";
+        case RTK_PHY_RTL8261N:  return "RTL8261N";
+        case RTK_PHY_RTL8261BE: return "RTL8261BE";
+        case RTK_PHY_RTL8264:   return "RTL8264";
+        case RTK_PHY_RTL8264B:  return "RTL8264B";
         default:                   return "RTL82????";
     }
+}
+
+static int rtk_phylib_826xb_intr_init(struct phy_device *phydev)
+{
+    int ret = 0;
+
+    /* Disable all IMR*/
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(15, 0), 0)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE3, UINT32_BITS_MASK(15, 0), 0)) < 0)
+        return ret;
+
+    /* source */
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE4, UINT32_BITS_MASK(15, 0), 0x1)) < 0)
+        return ret;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE0, UINT32_BITS_MASK(15, 0), 0x2F)) < 0)
+        return ret;
+
+    /* init common link change & WOL*/
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA424, UINT32_BITS_MASK(15, 0), BIT(4) | BIT(7))) < 0)
+        return ret;
+
+    /* clear status */
+    phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x2DC, UINT32_BITS_MASK(15, 0), 0xFF);
+
+    return ret;
 }
 
 static int rtkphy_config_init(struct phy_device *phydev)
@@ -151,8 +177,8 @@ static int rtkphy_config_init(struct phy_device *phydev)
                         rtkphy_get_phy_name(phydev), phydev->drv->phy_id, phydev->mdio.addr, priv->pnswap_tx, priv->pnswap_rx);
 
             /* toggle reset */
-            phy_modify_mmd_changed(phydev, MDIO_MMD_VEND1, 0x145, BIT(0)  , 1);
-            phy_modify_mmd_changed(phydev, MDIO_MMD_VEND1, 0x145, BIT(0)  , 0);
+            phy_modify_mmd_changed(phydev, MDIO_MMD_VEND1, 0x145, BIT(0), 1);
+            phy_modify_mmd_changed(phydev, MDIO_MMD_VEND1, 0x145, BIT(0), 0);
             mdelay(30);
 
             ret = phy_patch(phydev);
@@ -208,8 +234,8 @@ static int rtkphy_c45_config_aneg(struct phy_device *phydev)
                   phydev->advertising))
         reg |= BIT(8);
 
-    ret = phy_modify_mmd_changed(phydev, MDIO_MMD_VEND2, 0xA412,
-                     BIT(9) | BIT(8) , reg);
+    ret = phy_modify_mmd_changed(phydev, MDIO_MMD_VEND2, 0xA412, // MII_CTRL1000
+                                 BIT(9) | BIT(8), reg);
     if (ret < 0)
         return ret;
     if (ret > 0)
@@ -239,7 +265,7 @@ static int rtkphy_c45_read_status(struct phy_device *phydev)
         if (ret)
             return ret;
 
-        status =  phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xA414);
+        status = phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xA414); // MII_CTRL1000
         if (status < 0)
             return status;
         linkmode_mod_bit(ETHTOOL_LINK_MODE_1000baseT_Full_BIT,
@@ -277,30 +303,36 @@ static int rtkphy_c45_read_status(struct phy_device *phydev)
 
 static int rtl826xb_config_intr(struct phy_device *phydev)
 {
-	return rtk_phylib_826xb_intr_enable(phydev, phydev->interrupts == PHY_INTERRUPT_ENABLED);
+    return phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0xE1, UINT32_BITS_MASK(0, 0), phydev->interrupts == PHY_INTERRUPT_ENABLED);
 }
 
 static irqreturn_t rtl826xb_handle_intr(struct phy_device *phydev)
 {
-    int ret;
-    u32 status = 0;
-
-    if ((ret = rtk_phylib_826xb_intr_read_clear(phydev, &status)) < 0)
+    u32 rData = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xA43A), 0, UINT32_BITS_MASK(15, 0));
+    if (rData < 0)
         return IRQ_NONE;
 
-    if (status & RTK_PHY_INTR_LINK_CHANGE)
+    if (phy_modify_mmd(phydev, MDIO_MMD_VEND1, 0x2DC, UINT32_BITS_MASK(15, 0), 0xFF) < 0)
+        return IRQ_NONE;
+
+    if (rData & BIT(4))
     {
         pr_debug("[%s,%d] RTK_PHY_INTR_LINK_CHANGE\n", __FUNCTION__, __LINE__);
         phy_mac_interrupt(phydev);
     }
 
-    if (status & RTK_PHY_INTR_WOL)
+    if (rData & BIT(7))
     {
         pr_debug("[%s,%d] RTK_PHY_INTR_WOL\n", __FUNCTION__, __LINE__);
-        rtk_phylib_826xb_wol_reset(phydev);
+
+        if (phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 0) < 0)
+            return IRQ_NONE;
+
+        if (phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A2, UINT32_BITS_MASK(15, 15), 1 << 15) < 0)
+            return IRQ_NONE;
     }
 
-    return status ? IRQ_HANDLED : IRQ_NONE;
+    return IRQ_HANDLED;
 }
 
 static int rtl826xb_get_tunable(struct phy_device *phydev, struct ethtool_tunable *tuna, void *data)
@@ -311,14 +343,18 @@ static int rtl826xb_get_tunable(struct phy_device *phydev, struct ethtool_tunabl
     switch (tuna->id)
     {
         case ETHTOOL_PHY_EDPD:
-            if ((ret = rtk_phylib_826xb_link_down_power_saving_get(phydev, &val)) < 0)
-        		return ret;
+            val = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xA430), 2, UINT32_BITS_MASK(2, 2));
+            if (val < 0)
+                return ret;
+
             *(u16 *)data = (val == 0) ? ETHTOOL_PHY_EDPD_DISABLE : ETHTOOL_PHY_EDPD_DFLT_TX_MSECS;
-            return 0;
+            break;
 
         default:
             return -EOPNOTSUPP;
     }
+
+    return 0;
 }
 
 static int rtl826xb_set_tunable(struct phy_device *phydev, struct ethtool_tunable *tuna, const void *data)
@@ -329,10 +365,10 @@ static int rtl826xb_set_tunable(struct phy_device *phydev, struct ethtool_tunabl
     switch (tuna->id)
     {
         case ETHTOOL_PHY_EDPD:
-            switch (*(const u16 *)data)
+            switch (*(const u16 *) data)
             {
                 case ETHTOOL_PHY_EDPD_DFLT_TX_MSECS:
-                    val = 1;
+                    val = BIT(2);
                     break;
                 case ETHTOOL_PHY_EDPD_DISABLE:
                     val = 0;
@@ -340,40 +376,52 @@ static int rtl826xb_set_tunable(struct phy_device *phydev, struct ethtool_tunabl
                 default:
                     return -EINVAL;
             }
-            if ((ret = rtk_phylib_826xb_link_down_power_saving_set(phydev, val)) < 0)
-        		return ret;
-            return 0;
+
+            if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xA430, UINT32_BITS_MASK(2, 2), val)) < 0)
+                return ret;
+            break;
 
         default:
             return -EOPNOTSUPP;
     }
+
+    return 0;
 }
 
 static int rtl826xb_set_wol(struct phy_device *phydev,
               struct ethtool_wolinfo *wol)
 {
+    const u32 cfg_reg[4] = {0xD8C6, 0xD8C8, 0xD8CA, 0xD8CC};
     int ret = 0;
     u8 *mac_addr = NULL;
-    u32 rtk_wol_opts = 0;
+    u32 idx, offset, multicast_cfg;
 
     struct net_device *ndev = phydev->attached_dev;
     if (!ndev)
         return -EINVAL;
 
-    if (wol->wolopts & ~( WAKE_PHY | WAKE_MAGIC | WAKE_UCAST | WAKE_BCAST | WAKE_MCAST))
+    if (wol->wolopts & ~(WAKE_PHY | WAKE_MAGIC | WAKE_UCAST | WAKE_BCAST | WAKE_MCAST))
         return -EOPNOTSUPP;
 
     if (wol->wolopts & (WAKE_MAGIC | WAKE_UCAST))
     {
         mac_addr = (u8 *) ndev->dev_addr;
-        if ((ret = rtk_phylib_826xb_wol_unicast_addr_set(phydev, mac_addr)) < 0)
-        	return ret;
+
+        if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C0, UINT32_BITS_MASK(15, 0), (mac_addr[1] << 8 | mac_addr[0]))) < 0)
+            return ret;
+
+        if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C2, UINT32_BITS_MASK(15, 0), (mac_addr[3] << 8 | mac_addr[2]))) < 0)
+            return ret;
+
+        if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8C4, UINT32_BITS_MASK(15, 0), (mac_addr[5] << 8 | mac_addr[4]))) < 0)
+            return ret;
     }
 
     if (wol->wolopts & WAKE_MCAST)
     {
-        if ((ret = rtk_phylib_826xb_wol_multicast_mask_reset(phydev)) < 0)
-        	return ret;
+        for (idx = 0; idx < sizeof(cfg_reg) / sizeof(cfg_reg[0]); idx++)
+            if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx], UINT32_BITS_MASK(15, 0), 0)) < 0)
+                return ret;
 
         if (!netdev_mc_empty(ndev))
         {
@@ -381,52 +429,53 @@ static int rtl826xb_set_wol(struct phy_device *phydev,
             netdev_for_each_mc_addr(ha, ndev)
             {
                 pr_info("[%s,%d] mac: %pM \n", __FUNCTION__, __LINE__, ha->addr);
-                if ((ret = rtk_phylib_826xb_wol_multicast_mask_add(phydev, rtk_phylib_826xb_wol_multicast_mac2offset(ha->addr))) < 0)
-        			return ret;
+
+                offset = crc32_be(~0, ha->addr, 6) >> 26;
+                idx = offset >> 4;
+
+                multicast_cfg = REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx]), 0, UINT32_BITS_MASK(15, 0));
+
+                multicast_cfg = (multicast_cfg | (1 << (offset & 0xF)));
+
+                if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, cfg_reg[idx], UINT32_BITS_MASK(15, 0), multicast_cfg)) < 0)
+                    return ret;
             }
         }
     }
 
-    if (wol->wolopts & WAKE_PHY)
-        rtk_wol_opts |= RTK_WOL_OPT_LINK;
-    if (wol->wolopts & WAKE_MAGIC)
-        rtk_wol_opts |= RTK_WOL_OPT_MAGIC;
-    if (wol->wolopts & WAKE_UCAST)
-        rtk_wol_opts |= RTK_WOL_OPT_UCAST;
-    if (wol->wolopts & WAKE_BCAST)
-        rtk_wol_opts |= RTK_WOL_OPT_BCAST;
-    if (wol->wolopts & WAKE_MCAST)
-        rtk_wol_opts |= RTK_WOL_OPT_MCAST;
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(13, 13), ((wol->wolopts & WAKE_PHY) ? 1 : 0) << 13)) < 0)
+        return ret;
 
-    if ((ret = rtk_phylib_826xb_wol_set(phydev, rtk_wol_opts)) < 0)
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(12, 12), ((wol->wolopts & WAKE_MAGIC) ? 1 : 0) << 12)) < 0)
+        return ret;
+
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(10, 10), ((wol->wolopts & WAKE_UCAST) ? 1 : 0) << 10)) < 0)
+        return ret;
+
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(9, 9), ((wol->wolopts & WAKE_MCAST) ? 1 : 0) << 9)) < 0)
+        return ret;
+
+    if ((ret = phy_modify_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0, UINT32_BITS_MASK(8, 8), ((wol->wolopts & WAKE_BCAST) ? 1 : 0) << 8)) < 0)
         return ret;
 
     return 0;
 }
 
-
 static void rtl826xb_get_wol(struct phy_device *phydev,
                struct ethtool_wolinfo *wol)
 {
-    int ret = 0;
-    u32 rtk_wol_opts = 0;
-
     wol->supported = WAKE_PHY | WAKE_MAGIC | WAKE_UCAST | WAKE_BCAST | WAKE_MCAST;
     wol->wolopts = 0;
 
-    ret = rtk_phylib_826xb_wol_get(phydev, &rtk_wol_opts);
-    if (ret < 0)
-        return;
-
-    if (rtk_wol_opts & RTK_WOL_OPT_LINK)
+    if (REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0), 13, UINT32_BITS_MASK(13, 13)))
         wol->wolopts |= WAKE_PHY;
-    if (rtk_wol_opts & RTK_WOL_OPT_MAGIC)
+    if (REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0), 12, UINT32_BITS_MASK(12, 12)))
         wol->wolopts |= WAKE_MAGIC;
-    if (rtk_wol_opts & RTK_WOL_OPT_UCAST)
+    if (REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0), 10, UINT32_BITS_MASK(10, 10)))
         wol->wolopts |= WAKE_UCAST;
-    if (rtk_wol_opts & RTK_WOL_OPT_MCAST)
+    if (REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0), 9, UINT32_BITS_MASK(9, 9)))
         wol->wolopts |= WAKE_MCAST;
-    if (rtk_wol_opts & RTK_WOL_OPT_BCAST)
+    if (REG32_FIELD_GET(phy_read_mmd(phydev, MDIO_MMD_VEND2, 0xD8A0), 8, UINT32_BITS_MASK(8, 8)))
         wol->wolopts |= WAKE_BCAST;
 }
 
