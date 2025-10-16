@@ -10,19 +10,7 @@
 #define REALTEK_PHY_ID_RTL8264          0x001CCAF2
 #define REALTEK_PHY_ID_RTL8264B         0x001CC813
 
-typedef enum rtk_phy_e
-{
-    RTK_PHY_NONE,
-    RTK_PHY_RTL8251L,
-    RTK_PHY_RTL8254B,
-    RTK_PHY_RTL8261N,
-    RTK_PHY_RTL8261BE,
-    RTK_PHY_RTL8264,
-    RTK_PHY_RTL8264B,
-} rtk_phy_t;
-
 struct rtk_phy_priv {
-    rtk_phy_t phytype;
     rt_phy_patch_db_t *patch;
 
     bool pnswap_tx:1;

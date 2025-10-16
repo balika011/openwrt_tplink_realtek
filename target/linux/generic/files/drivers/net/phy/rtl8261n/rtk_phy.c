@@ -20,10 +20,7 @@
 
 static int rtl826xb_get_features(struct phy_device *phydev)
 {
-    int ret;
-    struct rtk_phy_priv *priv = phydev->priv;
-
-    ret = genphy_c45_pma_read_abilities(phydev);
+    int ret = genphy_c45_pma_read_abilities(phydev);
     if (ret)
         return ret;
 
@@ -39,17 +36,17 @@ static int rtl826xb_get_features(struct phy_device *phydev)
     linkmode_clear_bit(ETHTOOL_LINK_MODE_10baseT_Full_BIT,
                        phydev->supported);
 
-    switch (priv->phytype)
-    {
-        case RTK_PHY_RTL8251L:
-        case RTK_PHY_RTL8254B:
-            linkmode_clear_bit(ETHTOOL_LINK_MODE_10000baseT_Full_BIT,
-                       phydev->supported);
-            break;
+    return 0;
+}
 
-        default:
-            break;
-    }
+static int rtl825xb_get_features(struct phy_device *phydev)
+{
+    int ret = rtl826xb_get_features(phydev);
+    if (ret)
+        return ret;
+
+    linkmode_clear_bit(ETHTOOL_LINK_MODE_10000baseT_Full_BIT,
+                       phydev->supported);
 
     return 0;
 }
@@ -58,7 +55,6 @@ static int rtl826xb_probe(struct phy_device *phydev)
 {
     struct device *dev = &phydev->mdio.dev;
     struct rtk_phy_priv *priv = NULL;
-    int data = 0;
 
     priv = devm_kzalloc(&phydev->mdio.dev, sizeof(struct rtk_phy_priv), GFP_KERNEL);
     if (!priv)
@@ -69,73 +65,12 @@ static int rtl826xb_probe(struct phy_device *phydev)
     if (phy_patch_rtl826xb_db_init(phydev, &(priv->patch)) < 0)
         return -ENOMEM;
 
-    if (phydev->drv->phy_id == REALTEK_PHY_ID_RTL8261N)
-    {
-        data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x103);
-        if (data < 0)
-            return data;
-
-        if (data == 0x8251)
-        {
-            priv->phytype = RTK_PHY_RTL8251L;
-        }
-        else
-        {
-            data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x104);
-            if (data < 0)
-                return data;
-
-            if ((data & 0xFFC0) == 0x1140)
-            {
-                priv->phytype = RTK_PHY_RTL8261BE;
-            }
-            else
-            {
-                priv->phytype = RTK_PHY_RTL8261N;
-            }
-        }
-    }
-    else if (phydev->drv->phy_id == REALTEK_PHY_ID_RTL8264B)
-    {
-        data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x103);
-        if (data < 0)
-            return data;
-
-        if (data == 0x8254)
-        {
-            priv->phytype = RTK_PHY_RTL8254B;
-        }
-        else
-        {
-            priv->phytype = RTK_PHY_RTL8264B;
-        }
-    }
-    else if (phydev->drv->phy_id == REALTEK_PHY_ID_RTL8264)
-    {
-         priv->phytype = RTK_PHY_RTL8264;
-    }
-
     priv->pnswap_tx = device_property_read_bool(dev, "realtek,pnswap-tx");
     priv->pnswap_rx = device_property_read_bool(dev, "realtek,pnswap-rx");
     priv->rtk_serdes_patch = device_property_read_bool(dev, "realtek,rtk-serdes-patch");
     phydev->priv = priv;
 
     return 0;
-}
-
-static const char *rtkphy_get_phy_name(struct phy_device *phydev)
-{
-    struct rtk_phy_priv *priv = phydev->priv;
-    switch (priv->phytype)
-    {
-        case RTK_PHY_RTL8251L:  return "RTL8251L";
-        case RTK_PHY_RTL8254B:  return "RTL8254B";
-        case RTK_PHY_RTL8261N:  return "RTL8261N";
-        case RTK_PHY_RTL8261BE: return "RTL8261BE";
-        case RTK_PHY_RTL8264:   return "RTL8264";
-        case RTK_PHY_RTL8264B:  return "RTL8264B";
-        default:                   return "RTL82????";
-    }
 }
 
 static int rtk_phylib_826xb_intr_init(struct phy_device *phydev)
@@ -173,8 +108,8 @@ static int rtkphy_config_init(struct phy_device *phydev)
         case REALTEK_PHY_ID_RTL8261N:
         case REALTEK_PHY_ID_RTL8264:
         case REALTEK_PHY_ID_RTL8264B:
-            phydev_info(phydev, "%s:%u [%s] phy_id: 0x%X PHYAD:%d swap_tx: %d swap_rx: %d\n", __FUNCTION__, __LINE__,
-                        rtkphy_get_phy_name(phydev), phydev->drv->phy_id, phydev->mdio.addr, priv->pnswap_tx, priv->pnswap_rx);
+            phydev_info(phydev, "%s:%u phy_id: 0x%X PHYAD:%d swap_tx: %d swap_rx: %d\n", __FUNCTION__, __LINE__,
+                        phydev->drv->phy_id, phydev->mdio.addr, priv->pnswap_tx, priv->pnswap_rx);
 
             /* toggle reset */
             phy_modify_mmd_changed(phydev, MDIO_MMD_VEND1, 0x145, BIT(0), 1);
@@ -479,10 +414,177 @@ static void rtl826xb_get_wol(struct phy_device *phydev,
         wol->wolopts |= WAKE_BCAST;
 }
 
+static int rtl8251l_match_phy_device(struct phy_device *phydev,
+                                     const struct phy_driver *phydrv)
+{
+    if (!phydev->is_c45 || !phydev->mdio.bus->read_c45)
+        return 0;
+
+    if (!genphy_match_phy_device(phydev, phydrv))
+        return 0;
+
+    int data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x103);
+    if (data < 0)
+        return 0;
+
+    if (data != 0x8251)
+        return 0;
+
+    return 1;
+}
+
+static int rtl8254b_match_phy_device(struct phy_device *phydev,
+                              const struct phy_driver *phydrv)
+{
+    if (!phydev->is_c45 || !phydev->mdio.bus->read_c45)
+        return 0;
+
+    if (!genphy_match_phy_device(phydev, phydrv))
+        return 0;
+
+    int data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x103);
+    if (data < 0)
+        return 0;
+
+    if (data != 0x8254)
+        return 0;
+
+    return 1;
+}
+
+static int rtl8261be_match_phy_device(struct phy_device *phydev,
+                              const struct phy_driver *phydrv)
+{
+    if (!phydev->is_c45 || !phydev->mdio.bus->read_c45)
+        return 0;
+
+    if (!genphy_match_phy_device(phydev, phydrv))
+        return 0;
+
+    int data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x103);
+    if (data < 0)
+        return 0;
+
+    if (data == 0x8251)
+        return 0;
+
+    data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x104);
+    if (data < 0)
+        return 0;
+
+    if ((data & 0xFFC0) != 0x1140)
+        return 0;
+
+    return 1;
+}
+
+static int rtl8261n_match_phy_device(struct phy_device *phydev,
+                              const struct phy_driver *phydrv)
+{
+    if (!phydev->is_c45 || !phydev->mdio.bus->read_c45)
+        return 0;
+
+    if (!genphy_match_phy_device(phydev, phydrv))
+        return 0;
+
+    int data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x103);
+    if (data < 0)
+        return 0;
+
+    if (data == 0x8251)
+        return 0;
+
+    data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x104);
+    if (data < 0)
+        return 0;
+
+    if ((data & 0xFFC0) == 0x1140)
+        return 0;
+
+    return 1;
+}
+
+static int rtl8264b_match_phy_device(struct phy_device *phydev,
+                              const struct phy_driver *phydrv)
+{
+    if (!phydev->is_c45 || !phydev->mdio.bus->read_c45)
+        return 0;
+
+    if (!genphy_match_phy_device(phydev, phydrv))
+        return 0;
+
+    int data = phy_read_mmd(phydev, MDIO_MMD_VEND1, 0x103);
+    if (data < 0)
+        return 0;
+
+    if (data == 0x8254)
+        return 0;
+
+    return 1;
+}
+
 static struct phy_driver rtk_phy_drivers[] = {
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8261N),
-        .name               = "Realtek RTL8261N/8261BE/8251L",
+        .match_phy_device   = rtl8251l_match_phy_device,
+        .name               = "Realtek RTL8251L",
+        .get_features       = rtl825xb_get_features,
+        .config_init        = rtkphy_config_init,
+        .probe              = rtl826xb_probe,
+        .suspend            = genphy_c45_pma_suspend,
+        .resume             = genphy_c45_pma_resume,
+        .config_aneg        = rtkphy_c45_config_aneg,
+        .aneg_done          = genphy_c45_aneg_done,
+        .read_status        = rtkphy_c45_read_status,
+        .config_intr        = rtl826xb_config_intr,
+        .handle_interrupt   = rtl826xb_handle_intr,
+        .get_tunable        = rtl826xb_get_tunable,
+        .set_tunable        = rtl826xb_set_tunable,
+        .set_wol            = rtl826xb_set_wol,
+        .get_wol            = rtl826xb_get_wol,
+    },
+    {
+        PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264B),
+        .match_phy_device   = rtl8254b_match_phy_device,
+        .name               = "Realtek RTL8254B",
+        .get_features       = rtl825xb_get_features,
+        .config_init        = rtkphy_config_init,
+        .probe              = rtl826xb_probe,
+        .suspend            = genphy_c45_pma_suspend,
+        .resume             = genphy_c45_pma_resume,
+        .config_aneg        = rtkphy_c45_config_aneg,
+        .aneg_done          = genphy_c45_aneg_done,
+        .read_status        = rtkphy_c45_read_status,
+        .config_intr        = rtl826xb_config_intr,
+        .handle_interrupt   = rtl826xb_handle_intr,
+        .get_tunable        = rtl826xb_get_tunable,
+        .set_tunable        = rtl826xb_set_tunable,
+        .set_wol            = rtl826xb_set_wol,
+        .get_wol            = rtl826xb_get_wol,
+    },
+    {
+        PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8261N),
+        .match_phy_device   = rtl8261be_match_phy_device,
+        .name               = "Realtek RTL8261BE",
+        .get_features       = rtl826xb_get_features,
+        .config_init        = rtkphy_config_init,
+        .probe              = rtl826xb_probe,
+        .suspend            = genphy_c45_pma_suspend,
+        .resume             = genphy_c45_pma_resume,
+        .config_aneg        = rtkphy_c45_config_aneg,
+        .aneg_done          = genphy_c45_aneg_done,
+        .read_status        = rtkphy_c45_read_status,
+        .config_intr        = rtl826xb_config_intr,
+        .handle_interrupt   = rtl826xb_handle_intr,
+        .get_tunable        = rtl826xb_get_tunable,
+        .set_tunable        = rtl826xb_set_tunable,
+        .set_wol            = rtl826xb_set_wol,
+        .get_wol            = rtl826xb_get_wol,
+    },
+    {
+        PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8261N),
+        .match_phy_device   = rtl8261n_match_phy_device,
+        .name               = "Realtek RTL8261N",
         .get_features       = rtl826xb_get_features,
         .config_init        = rtkphy_config_init,
         .probe              = rtl826xb_probe,
@@ -518,7 +620,8 @@ static struct phy_driver rtk_phy_drivers[] = {
     },
     {
         PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8264B),
-        .name               = "Realtek RTL8264B/8254B",
+        .match_phy_device   = rtl8264b_match_phy_device,
+        .name               = "Realtek RTL8264B",
         .get_features       = rtl826xb_get_features,
         .config_init        = rtkphy_config_init,
         .probe              = rtl826xb_probe,
@@ -537,7 +640,6 @@ static struct phy_driver rtk_phy_drivers[] = {
 };
 
 module_phy_driver(rtk_phy_drivers);
-
 
 static struct mdio_device_id __maybe_unused rtk_phy_tbl[] = {
     { PHY_ID_MATCH_EXACT(REALTEK_PHY_ID_RTL8261N) },
